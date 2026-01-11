@@ -1,10 +1,213 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>CCL3 Project</title>
-</head>
-<body>
-  <h1>Quiet Bloom</h1>
-  <p>Description coming soon.</p>
-</body>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quiet Bloom — Period Tracking & Journaling</title>
+    <meta
+      name="description"
+      content="Quiet Bloom is a gentle period tracking app that helps you understand your cycle, mood, energy, and patterns over time."
+    />
+
+    <link rel="stylesheet" href="styles.css" />
+    <script defer src="script.js"></script>
+  </head>
+
+  <body>
+    <header class="nav">
+      <a class="brand" href="#top" aria-label="Quiet Bloom home">
+        <span class="brand__dot" aria-hidden="true"></span>
+        <span class="brand__name">Quiet Bloom</span>
+      </a>
+
+      <nav class="nav__links" aria-label="Primary">
+        <a href="#concept">Concept</a>
+        <a href="#features">Features</a>
+        <a href="#users">Target users</a>
+        <a href="#prototype">Prototype</a>
+      </nav>
+
+      <button class="nav__btn" id="themeBtn" type="button" aria-label="Toggle theme">
+        🌙
+      </button>
+    </header>
+
+    <main id="top">
+      <section class="hero">
+        <div class="hero__content">
+          <p class="tag">Gentle • Intuitive • Journal-like</p>
+          <h1>Track your cycle — and understand your patterns.</h1>
+          <p class="lead">
+            Quiet Bloom is a period tracking app designed to help users go beyond dates by logging
+            pain, energy, mood, and short journal notes. Over time it offers predictions and
+            insights to support self-understanding.
+          </p>
+
+          <div class="hero__cta">
+            <a class="btn btn--primary" href="#prototype">See prototype</a>
+            <a class="btn btn--ghost" href="#features">Explore features</a>
+          </div>
+
+          <div class="hero__stats" role="list">
+            <div class="stat" role="listitem">
+              <div class="stat__k">Daily</div>
+              <div class="stat__v">Quick logging</div>
+            </div>
+            <div class="stat" role="listitem">
+              <div class="stat__k">Mood</div>
+              <div class="stat__v">Energy • Pain • Flow</div>
+            </div>
+            <div class="stat" role="listitem">
+              <div class="stat__k">Insights</div>
+              <div class="stat__v">Predictions & trends</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Simple “phone” mock block (no images needed) -->
+        <div class="hero__mock" aria-label="App preview mockup">
+          <div class="phone">
+            <div class="phone__screen">
+              <div class="mock__header">
+                <div class="mock__logo" aria-hidden="true"></div>
+                <div>
+                  <div class="mock__title">Quiet Bloom</div>
+                  <div class="mock__subtitle">Home</div>
+                </div>
+              </div>
+
+              <div class="mock__card">
+                <div class="mock__label">Today</div>
+                <div class="mock__row">
+                  <span>Energy</span>
+                  <span class="pill">⚡⚡⚡</span>
+                </div>
+                <div class="mock__row">
+                  <span>Mood</span>
+                  <span class="pill">🙂</span>
+                </div>
+                <div class="mock__row">
+                  <span>Pain</span>
+                  <span class="pill">🩹🩹</span>
+                </div>
+              </div>
+
+              <div class="mock__card">
+                <div class="mock__label">Journal note</div>
+                <div class="mock__note">
+                  “Felt calmer after a walk. Low cramps, good focus.”
+                </div>
+              </div>
+
+              <div class="mock__footer" aria-hidden="true">
+                <span>Statistics</span><span>Home</span><span>Profile</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="concept" class="section">
+        <h2>Concept</h2>
+        <p>
+          Quiet Bloom supports menstrual cycle tracking with a calm, journal-like experience:
+          period dates, pain intensity, mood, energy, and personal notes—then personalized
+          predictions and insights over time.
+        </p>
+      </section>
+
+      <section id="features" class="section">
+        <h2>What you can do</h2>
+
+        <div class="grid">
+          <article class="card">
+            <h3>Track your cycle</h3>
+            <p>Log period days and see upcoming predictions.</p>
+          </article>
+
+          <article class="card">
+            <h3>Log well-being</h3>
+            <p>Record pain intensity, energy levels, and mood in a simple flow.</p>
+          </article>
+
+          <article class="card">
+            <h3>Journal notes</h3>
+            <p>Write short reflections to capture what’s happening day-to-day.</p>
+          </article>
+
+          <article class="card">
+            <h3>Patterns & insights</h3>
+            <p>View trends over time (expected mood/energy shifts, upcoming period, etc.).</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="users" class="section">
+        <h2>Target users</h2>
+        <ul class="list">
+          <li>People who menstruate and want to understand how mood and energy relate to their cycle.</li>
+          <li>Users who enjoy journaling and self-reflection as part of a daily routine.</li>
+        </ul>
+      </section>
+
+      <section id="prototype" class="section">
+        <h2>High-fi prototype</h2>
+        <p>
+          Add screenshots here later (export them as PNG/JPG and place them in an <code>assets/</code> folder).
+          For now this page includes a lightweight mock preview.
+        </p>
+
+        <div class="proto">
+          <div class="proto__item">
+            <div class="proto__thumb" aria-hidden="true"></div>
+            <div class="proto__text">
+              <strong>Welcome & Login</strong>
+              <p>Simple onboarding + login/register flow.</p>
+            </div>
+          </div>
+
+          <div class="proto__item">
+            <div class="proto__thumb" aria-hidden="true"></div>
+            <div class="proto__text">
+              <strong>Home Calendar</strong>
+              <p>Calendar overview + navigation to stats and profile.</p>
+            </div>
+          </div>
+
+          <div class="proto__item">
+            <div class="proto__thumb" aria-hidden="true"></div>
+            <div class="proto__text">
+              <strong>Daily logging</strong>
+              <p>Quick inputs for flow, pain, energy, mood, plus notes.</p>
+            </div>
+          </div>
+
+          <div class="proto__item">
+            <div class="proto__thumb" aria-hidden="true"></div>
+            <div class="proto__text">
+              <strong>Statistics</strong>
+              <p>Graphs and averages (cycle length, period length, fluctuations).</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout">
+          <p><strong>Tip:</strong> Want this to match your app style more?</p>
+          <p>
+            Send me your color codes / font choice (or a screenshot), and I’ll align the CSS to your
+            exact aesthetic.
+          </p>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <p>
+        <span id="year"></span> © Quiet Bloom • Made by Josephina Steinboeck & Laetitia Toth
+      </p>
+      <p class="footer__small">
+        This is a student/project landing page. No tracking, no cookies.
+      </p>
+    </footer>
+  </body>
 </html>
