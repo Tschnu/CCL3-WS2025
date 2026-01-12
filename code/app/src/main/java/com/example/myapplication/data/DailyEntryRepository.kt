@@ -59,6 +59,18 @@ class DailyEntryRepository(
             )
         )
     }
+    
+    suspend fun updateEntry(entity: DailyEntry) {
+        dailyEntryDao.updateEntry(
+            DailyEntryEntity(
+                date = entity.date,
+                painCategory = entity.painCategory,
+                energyCategory = entity.energyCategory,
+                moodCategory = entity.moodCategory,
+                bloodflowCategory = entity.bloodflowCategory
+            )
+        )
+    }
 
 
 
