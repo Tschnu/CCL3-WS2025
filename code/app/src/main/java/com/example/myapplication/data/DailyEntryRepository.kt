@@ -48,5 +48,20 @@ class DailyEntryRepository(
     }
 
 
+    suspend fun deleteEntry(entity: DailyEntryEntity) {
+        dailyEntryDao.deleteEntry(
+            DailyEntryEntity(
+                date = entity.date,
+                painCategory = entity.painCategory,
+                energyCategory = entity.energyCategory,
+                moodCategory = entity.moodCategory,
+                bloodflowCategory = entity.bloodflowCategory
+            )
+        )
+    }
+
+
+
+
 
 }
