@@ -1,3 +1,5 @@
 package com.example.myapplication.data
 
-data class DailyEntry()
+data class DailyEntry(
+    val id: Int = 1
+)
