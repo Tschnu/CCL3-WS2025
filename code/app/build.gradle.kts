@@ -2,8 +2,11 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-    id("com.google.dev.tools.ksp")
+
+    id("com.google.devtools.ksp")
 }
+
+
 
 android {
     namespace = "com.example.myapplication"
