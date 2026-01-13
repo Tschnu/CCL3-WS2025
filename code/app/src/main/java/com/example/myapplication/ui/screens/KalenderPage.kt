@@ -58,7 +58,7 @@ fun KalenderPage() {
             }
         }
 
-        BottomNavigationBar()
+
     }
 }
 
@@ -91,34 +91,6 @@ fun CalendarHeader() {
 
 
 
-@Composable
-fun BottomNavigationBar() {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(Color(0xFFDEBE00))
-            .padding(vertical = 16.dp),
-        horizontalArrangement = Arrangement.SpaceEvenly,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        BottomNavItem(R.drawable.zweiblumen, "Statistics")
-        BottomNavItem(R.drawable.zweiblumen, "Home")
-        BottomNavItem(R.drawable.zweiblumen, "Profile")
-    }
-}
-
-@Composable
-fun BottomNavItem(icon: Int, label: String) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Image(
-            painter = painterResource(icon),
-            contentDescription = label,
-            modifier = Modifier.size(28.dp)
-        )
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(text = label, style = MaterialTheme.typography.labelMedium)
-    }
-}
 
 @Composable
 fun MonthCalendar(month: YearMonth) {
