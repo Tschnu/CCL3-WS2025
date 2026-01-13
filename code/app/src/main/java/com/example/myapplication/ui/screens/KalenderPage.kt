@@ -42,7 +42,6 @@ fun KalenderPage() {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF6EABA))
     ) {
         CalendarHeader()
 
@@ -169,7 +168,7 @@ fun RowScope.DayCell(day: Int) {
             .weight(1f)
             .aspectRatio(1f)
             .background(
-                color = Color(0xFFFFF3C4),
+                color = Color(0xFFEFECE5),
                 shape = RoundedCornerShape(8.dp)
             ),
         contentAlignment = Alignment.Center
