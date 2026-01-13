@@ -18,6 +18,6 @@ sealed class Screen(
 
 val bottomTabs = listOf(
     Screen.StatisticsPage,
-    Screen.Profile,
-    Screen.Home
+    Screen.Home,
+    Screen.Profile
 )
