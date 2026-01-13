@@ -1,19 +1,24 @@
 package com.example.myapplication.ui.screens
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Divider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.RowScope
+import com.example.myapplication.R
 import java.time.DayOfWeek
 import java.time.YearMonth
 import java.time.format.TextStyle
@@ -34,16 +39,84 @@ fun KalenderPage() {
         initialFirstVisibleItemIndex = monthsBefore
     )
 
-    LazyColumn(
-        state = listState,
+    Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(32.dp)
+            .background(Color(0xFFF6EABA))
     ) {
-        items(months.size) { index ->
-            MonthCalendar(month = months[index])
+        CalendarHeader()
+
+        LazyColumn(
+            state = listState,
+            modifier = Modifier
+                .weight(1f)
+                .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(32.dp)
+        ) {
+            items(months) { month ->
+                MonthCalendar(month = month)
+            }
         }
+
+        BottomNavigationBar()
+    }
+}
+
+@Composable
+fun CalendarHeader() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 8.dp, bottom = 4.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+
+        Image(
+            painter = painterResource(R.drawable.logo),
+            contentDescription = "Quiet Bloom Logo",
+            modifier = Modifier
+                .height(120.dp)
+                .wrapContentWidth()
+        )
+
+        Divider(
+            color = Color(0xFF3D2B1F),
+            thickness = 2.dp,
+            modifier = Modifier
+                .padding(top = 4.dp)
+                .fillMaxWidth(0.9f)
+        )
+    }
+}
+
+
+
+@Composable
+fun BottomNavigationBar() {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color(0xFFDEBE00))
+            .padding(vertical = 16.dp),
+        horizontalArrangement = Arrangement.SpaceEvenly,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        BottomNavItem(R.drawable.zweiblumen, "Statistics")
+        BottomNavItem(R.drawable.zweiblumen, "Home")
+        BottomNavItem(R.drawable.zweiblumen, "Profile")
+    }
+}
+
+@Composable
+fun BottomNavItem(icon: Int, label: String) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Image(
+            painter = painterResource(icon),
+            contentDescription = label,
+            modifier = Modifier.size(28.dp)
+        )
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(text = label, style = MaterialTheme.typography.labelMedium)
     }
 }
 
@@ -51,7 +124,6 @@ fun KalenderPage() {
 fun MonthCalendar(month: YearMonth) {
     val firstDayOfMonth = month.atDay(1)
     val daysInMonth = month.lengthOfMonth()
-
     val firstDayOffset = (firstDayOfMonth.dayOfWeek.value + 6) % 7
 
     Column {
@@ -130,13 +202,9 @@ fun RowScope.DayCell(day: Int) {
             ),
         contentAlignment = Alignment.Center
     ) {
-        Text(
-            text = day.toString(),
-            style = MaterialTheme.typography.bodyMedium
-        )
+        Text(text = day.toString(), style = MaterialTheme.typography.bodyMedium)
     }
 }
-
 
 @Composable
 fun RowScope.EmptyCell() {
