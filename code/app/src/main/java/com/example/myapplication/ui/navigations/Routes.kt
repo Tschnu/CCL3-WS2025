@@ -14,6 +14,10 @@ sealed class Screen(
     data object StatisticsPage : Screen("statistics_page", "Statistics", Icons.Filled.Add)
     data object Profile : Screen("profile", "Profile", Icons.Filled.Person)
     data object Home : Screen("home", "Home", Icons.Filled.FavoriteBorder)
+
+    data object AddEntry : Screen("add_entry/{date}","Add Entry", Icons.Filled.Add) {
+        fun createRoute(date: String) = "add_entry/$date"
+    }
 }
 
 val bottomTabs = listOf(

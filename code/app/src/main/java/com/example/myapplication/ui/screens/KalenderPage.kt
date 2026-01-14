@@ -2,6 +2,7 @@ package com.example.myapplication.ui.screens
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -18,14 +19,18 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.RowScope
+import androidx.navigation.NavController
 import com.example.myapplication.R
+import com.example.myapplication.ui.navigation.Screen
 import java.time.DayOfWeek
+import java.time.LocalDate
+import java.time.Year
 import java.time.YearMonth
 import java.time.format.TextStyle
 import java.util.Locale
 
 @Composable
-fun KalenderPage() {
+fun KalenderPage(navController: NavController) {
 
     val monthsBefore = 12
     val monthsAfter = 12
@@ -53,7 +58,7 @@ fun KalenderPage() {
             verticalArrangement = Arrangement.spacedBy(32.dp)
         ) {
             items(months) { month ->
-                MonthCalendar(month = month)
+                MonthCalendar(month = month, navController = navController)
             }
         }
 
@@ -92,7 +97,11 @@ fun CalendarHeader() {
 
 
 @Composable
-fun MonthCalendar(month: YearMonth) {
+fun MonthCalendar(
+    month: YearMonth,
+    navController: NavController
+) {
+    val today = LocalDate.now()
     val firstDayOfMonth = month.atDay(1)
     val daysInMonth = month.lengthOfMonth()
     val firstDayOffset = (firstDayOfMonth.dayOfWeek.value + 6) % 7
@@ -123,7 +132,7 @@ fun MonthCalendar(month: YearMonth) {
                         val dayNumber = cellIndex - firstDayOffset + 1
 
                         if (dayNumber in 1..daysInMonth) {
-                            DayCell(dayNumber)
+                            DayCell(day = dayNumber, month = month, navController = navController)
                         } else {
                             EmptyCell()
                         }
@@ -162,18 +171,37 @@ fun WeekDayHeader() {
 }
 
 @Composable
-fun RowScope.DayCell(day: Int) {
+fun RowScope.DayCell(
+    day: Int,
+    month: YearMonth,
+    navController: NavController
+) {
+    val date = month.atDay(day)
+    val today = LocalDate.now()
+    val isClickable = !date.isAfter(today)
+
     Box(
         modifier = Modifier
             .weight(1f)
             .aspectRatio(1f)
             .background(
-                color = Color(0xFFEFECE5),
+                color = if (isClickable) Color(0xFFEFECE5) else Color(0xFFDDDAD3),
                 shape = RoundedCornerShape(8.dp)
+            )
+            .then(
+                if (isClickable) Modifier.clickable {
+                    navController.navigate(
+                        Screen.AddEntry.createRoute(date.toString())
+                    )
+                } else Modifier
             ),
         contentAlignment = Alignment.Center
     ) {
-        Text(text = day.toString(), style = MaterialTheme.typography.bodyMedium)
+        Text(
+            text = day.toString(),
+            style = MaterialTheme.typography.bodyMedium,
+            color = if (isClickable) Color.Black else Color.Gray
+        )
     }
 }
 
