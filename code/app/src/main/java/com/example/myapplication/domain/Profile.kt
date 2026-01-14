@@ -1,4 +1,7 @@
 package com.example.myapplication.domain
 
-class Profile {
-}
+data class Profile (
+    val id: Int,
+    val userName: String,
+    val flowerPicture: Int,
+)
