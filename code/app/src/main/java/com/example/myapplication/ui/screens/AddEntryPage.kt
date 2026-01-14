@@ -50,5 +50,9 @@ fun AddEntryPage(date: String) {
         Button(onClick = {}) {
             Text("Mood")
         }
+
+        Button(onClick = {}) {
+            Text("Save")
+        }
     }
 }
