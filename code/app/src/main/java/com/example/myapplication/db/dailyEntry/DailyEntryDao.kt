@@ -1,4 +1,4 @@
-package com.example.myapplication.db
+package com.example.myapplication.db.dailyEntry
 
 import androidx.room.Dao
 import androidx.room.Delete
@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface DailyEntryDao {
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.Companion.REPLACE)
     suspend fun insertEntry(entry: DailyEntryEntity)
 
     @Update

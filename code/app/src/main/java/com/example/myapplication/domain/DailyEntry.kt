@@ -1,4 +1,4 @@
-package com.example.myapplication.data
+package com.example.myapplication.domain
 
 data class DailyEntry(
     val date: Long,

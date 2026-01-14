@@ -1,4 +1,4 @@
-package com.example.myapplication.db
+package com.example.myapplication.db.dailyEntry
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
