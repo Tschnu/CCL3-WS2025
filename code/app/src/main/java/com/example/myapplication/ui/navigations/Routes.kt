@@ -5,6 +5,8 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
 
 sealed class Screen(
     val route: String,
@@ -15,9 +17,20 @@ sealed class Screen(
     data object Profile : Screen("profile", "Profile", Icons.Filled.Person)
     data object Home : Screen("home", "Home", Icons.Filled.FavoriteBorder)
 
-    data object AddEntry : Screen("add_entry/{date}","Add Entry", Icons.Filled.Add) {
+    data object AddEntry : Screen(
+        route = "add_entry/{date}",
+        label = "Add Entry",
+        icon = Icons.Filled.Add
+    ) {
+        val arguments = listOf(
+            navArgument("date") {
+                type = NavType.StringType
+            }
+        )
+
         fun createRoute(date: String) = "add_entry/$date"
     }
+
 }
 
 val bottomTabs = listOf(
