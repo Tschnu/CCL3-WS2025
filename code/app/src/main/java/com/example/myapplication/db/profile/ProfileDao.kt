@@ -6,30 +6,24 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
-import com.example.myapplication.db.dailyEntry.DailyEntryEntity
+import com.example.myapplication.db.profile.ProfileEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ProfileDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertProfile(profile: DailyEntryEntity)
+    suspend fun insertProfile(profile: ProfileEntity)
 
     @Update
-    suspend fun updateProfile(profile: DailyEntryEntity)
+    suspend fun updateProfile(profile: ProfileEntity)
 
     @Delete
-    suspend fun deleteProfile(profile: DailyEntryEntity)
-
-    // Get all profiles (in case you allow more than one)
-    @Query("SELECT * FROM profile")
-    fun getAllProfiles(): Flow<List<DailyEntryEntity>>
+    suspend fun deleteProfile(profile: ProfileEntity)
 
     // Get a single profile (most common use case)
     @Query("SELECT * FROM profile LIMIT 1")
-    fun getProfile(): Flow<DailyEntryEntity?>
+    fun getProfile(): Flow<ProfileEntity?>
 }
 
 
-@Query("DELETE FROM profile")
-suspend fun clearProfile()
