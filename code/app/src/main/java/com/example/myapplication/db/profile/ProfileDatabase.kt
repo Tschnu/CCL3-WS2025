@@ -8,13 +8,13 @@ import com.example.myapplication.db.dailyEntry.DailyEntryDao
 import com.example.myapplication.db.dailyEntry.DailyEntryEntity
 
 @Database(
-    entities = [DailyEntryEntity::class], // this is your "profile" entity
+    entities = [ProfileEntity::class], // this is your "profile" entity
     version = 1,
     exportSchema = false
 )
 abstract class ProfileDatabase : RoomDatabase() {
 
-    abstract fun profileDao(): DailyEntryDao
+    abstract fun profileDao(): ProfileDao
     // ^ If you have a separate ProfileDao, change this to ProfileDao
 
     companion object {

@@ -7,69 +7,50 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.myapplication.db.profile.ProfileDatabase
+import com.example.myapplication.db.profile.ProfileDao
+import com.example.myapplication.ui.viewModel.PersonalViewModel
+//import com.example.myapplication.ui.viewModel.PersonalViewModelFactory
 
 @Composable
-fun PersonalProfilePage() {
-    // State to hold the text field values
-    var name by remember { mutableStateOf("") }
-    var email by remember { mutableStateOf("") }
-    var bio by remember { mutableStateOf("") }
+fun PersonalProfilePage(
+    //database: ProfileDatabase
+    viewModel: PersonalViewModel
+) {
+    /*val profileDao = database.profileDao()
+    val viewModel: PersonalViewModel = viewModel(
+        factory = PersonalViewModelFactory(profileDao)
+    )*/
+
+    val profile by viewModel.profile.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+            .padding(16.dp)
     ) {
-        Text(
-            text = "Profile",
-            style = MaterialTheme.typography.headlineLarge
-        )
+        if (isLoading) {
+            CircularProgressIndicator()
+        } else {
+            profile?.let { currentProfile ->
+                Text(text = "Current Name: ${currentProfile.name}")
 
-        // Outlined Text Field (default M3 style)
-        OutlinedTextField(
-            value = name,
-            onValueChange = { name = it },
-            label = { Text("Name") },
-            modifier = Modifier.fillMaxWidth()
-        )
+                var nameInput by remember { mutableStateOf(currentProfile.name) }
 
-        // Outlined Text Field with supporting text
-        OutlinedTextField(
-            value = email,
-            onValueChange = { email = it },
-            label = { Text("Email") },
-            supportingText = { Text("We'll never share your email") },
-            modifier = Modifier.fillMaxWidth()
-        )
+                TextField(
+                    value = nameInput,
+                    onValueChange = { nameInput = it },
+                    label = { Text("Name") }
+                )
 
-        // Multiline text field
-        OutlinedTextField(
-            value = bio,
-            onValueChange = { bio = it },
-            label = { Text("Bio") },
-            supportingText = { Text("Tell us about yourself") },
-            minLines = 3,
-            maxLines = 5,
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        // Filled Text Field (alternative style)
-        var phone by remember { mutableStateOf("") }
-        TextField(
-            value = phone,
-            onValueChange = { phone = it },
-            label = { Text("Phone") },
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        // Save button
-        Button(
-            onClick = { /* Handle save */ },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("Save Profile")
+                Button(
+                    onClick = { viewModel.updateUserName(nameInput) }
+                ) {
+                    Text("Save Name")
+                }
+            }
         }
     }
 }

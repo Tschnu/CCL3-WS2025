@@ -6,11 +6,13 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.example.myapplication.db.profile.ProfileDatabase
 import com.example.myapplication.ui.navigation.Screen
 import com.example.myapplication.ui.screens.AddEntryPage
 import com.example.myapplication.ui.screens.KalenderPage
 import com.example.myapplication.ui.screens.PersonalProfilePage
 import com.example.myapplication.ui.screens.StatisticsPage
+import com.example.myapplication.ui.viewModel.PersonalViewModel
 import com.example.myapplication.viewModel.EntryViewModel
 
 @Composable
@@ -25,7 +27,10 @@ fun AppNavHost(
     ) {
         composable(Screen.Home.route) { KalenderPage(navController)}
         composable(Screen.StatisticsPage.route) { StatisticsPage() }  // Changed this line!
-        composable(Screen.Profile.route) { PersonalProfilePage() }
+        composable(Screen.Profile.route) {
+            val personalViewModel: PersonalViewModel = viewModel()
+            PersonalProfilePage(viewModel = personalViewModel)
+        }
 
         composable(
             route = Screen.AddEntry.route,
