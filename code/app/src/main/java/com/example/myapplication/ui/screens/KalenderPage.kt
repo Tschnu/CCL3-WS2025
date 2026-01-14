@@ -32,8 +32,8 @@ import java.util.Locale
 @Composable
 fun KalenderPage(navController: NavController) {
 
-    val monthsBefore = 12
-    val monthsAfter = 12
+    val monthsBefore = 6
+    val monthsAfter = 6
 
     val startMonth = YearMonth.now().minusMonths(monthsBefore.toLong())
     val months = (0..(monthsBefore + monthsAfter)).map {

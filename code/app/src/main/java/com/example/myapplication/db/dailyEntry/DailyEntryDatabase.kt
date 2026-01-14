@@ -4,14 +4,17 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.TypeConverters
+import com.example.myapplication.db.converters.DailyLogConverter
 
 @Database(
     entities = [DailyEntryEntity::class],
     version = 1,
     exportSchema = false
 )
+@TypeConverters(DailyLogConverter::class)
+abstract class DailyEntryDatabase : RoomDatabase() {
 
-abstract class DailyEntryDatabase :  RoomDatabase() {
     abstract fun dailyEntryDao(): DailyEntryDao
 
     companion object {
