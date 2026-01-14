@@ -26,7 +26,7 @@ fun AppNavHost(
         modifier = modifier
     ) {
         composable(Screen.Home.route) { KalenderPage(navController)}
-        composable(Screen.StatisticsPage.route) { StatisticsPage() }  // Changed this line!
+        composable(Screen.StatisticsPage.route) { StatisticsPage() }
         composable(Screen.Profile.route) {
             val personalViewModel: PersonalViewModel = viewModel()
             PersonalProfilePage(viewModel = personalViewModel)
@@ -44,7 +44,8 @@ fun AppNavHost(
 
             AddEntryPage(
                 date = date,
-                viewModel = entryViewModel
+                viewModel = entryViewModel,
+                onNavigateBack = { navController.popBackStack() }  // Add this line
             )
         }
 

@@ -19,7 +19,8 @@ import java.time.LocalDate
 @Composable
 fun AddEntryPage(
     date: String,
-    viewModel: EntryViewModel
+    viewModel: EntryViewModel,
+    onNavigateBack: () -> Unit  // Add this parameter
 ) {
     val localDate = remember(date) { LocalDate.parse(date) }
 
@@ -82,7 +83,10 @@ fun AddEntryPage(
         Spacer(modifier = Modifier.height(16.dp))
 
         Button(
-            onClick = { viewModel.saveEntry() },
+            onClick = {
+                viewModel.saveEntry()
+                onNavigateBack()  // Navigate back after saving
+            },
             modifier = Modifier.align(Alignment.CenterHorizontally)
         ) {
             Text("Save")
