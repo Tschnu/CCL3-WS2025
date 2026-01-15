@@ -16,7 +16,8 @@ val Typography = Typography(
     bodyLarge = TextStyle(
         fontFamily = Quicksand,
         fontSize = 16.sp,
-        lineHeight = 24.sp
+        lineHeight = 24.sp,
+        fontWeight = FontWeight.ExtraBold
     ),
 
     bodyMedium = TextStyle(
@@ -26,7 +27,7 @@ val Typography = Typography(
     titleLarge = TextStyle(
         fontFamily = Quicksand,
         fontSize = 22.sp,
-        fontWeight = FontWeight.Normal
+        fontWeight = FontWeight.Bold
     ),
     titleMedium = TextStyle(
         fontFamily = Quicksand,
