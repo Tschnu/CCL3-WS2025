@@ -67,8 +67,16 @@ fun KalenderPage(navController: NavController) {
 
     val listState = rememberLazyListState(initialFirstVisibleItemIndex = monthsBefore)
 
-    Column(modifier = Modifier.fillMaxSize()) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+    ) {
         CalendarHeader()
+
+        // ✅ Fixed weekday header once (not per month)
+        WeekDayHeader()
+
+        Spacer(modifier = Modifier.height(10.dp))
 
         LazyColumn(
             state = listState,
@@ -91,6 +99,8 @@ fun KalenderPage(navController: NavController) {
 
 @Composable
 fun CalendarHeader() {
+    val brown = Color(0xFF3D2B1F)
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -100,11 +110,22 @@ fun CalendarHeader() {
         Image(
             painter = painterResource(R.drawable.logo),
             contentDescription = "Quiet Bloom Logo",
-            modifier = Modifier.height(120.dp)
+            modifier = Modifier
+                .height(80.dp)
+                .padding(end = 140.dp)   // 👈 moves it left
+        )
+
+
+        Divider(
+            color = brown,
+            thickness = 2.dp,
+            modifier = Modifier
+                .padding(top = 4.dp)
+                .fillMaxWidth(0.9f)
         )
 
         Divider(
-            color = Color(0xFF3D2B1F),
+            color = brown,
             thickness = 2.dp,
             modifier = Modifier
                 .padding(top = 4.dp)
@@ -113,9 +134,10 @@ fun CalendarHeader() {
     }
 }
 
-
 @Composable
 fun MonthHeader(month: YearMonth) {
+    val brown = Color(0xFF3D2B1F)
+
     val title =
         month.month.getDisplayName(TextStyle.FULL, Locale.getDefault())
             .replaceFirstChar { it.uppercase() } + " ${month.year}"
@@ -128,24 +150,24 @@ fun MonthHeader(month: YearMonth) {
     ) {
         Divider(
             thickness = 2.dp,
-            color = Color(0xFF3D2B1F),
+            color = brown,
             modifier = Modifier.fillMaxWidth(0.98f)
         )
 
         Text(
             text = title,
-            style = MaterialTheme.typography.titleMedium,
+            style = MaterialTheme.typography.labelMedium,
+            color = brown,
             modifier = Modifier.padding(vertical = 2.dp)
         )
 
         Divider(
             thickness = 2.dp,
-            color = Color(0xFF3D2B1F),
+            color = brown,
             modifier = Modifier.fillMaxWidth(0.98f)
         )
     }
 }
-
 
 @Composable
 fun MonthCalendar(
@@ -159,12 +181,8 @@ fun MonthCalendar(
     val firstDayOffset = (firstDayOfMonth.dayOfWeek.value + 6) % 7
 
     Column {
+        MonthHeader(month)
 
-            MonthHeader(month)
-
-
-
-        WeekDayHeader()
         Spacer(modifier = Modifier.height(8.dp))
 
         val totalCells = firstDayOffset + daysInMonth
@@ -200,9 +218,22 @@ fun MonthCalendar(
 
 @Composable
 fun WeekDayHeader() {
-    val days = DayOfWeek.values().toList()
+    val brown = Color(0xFF3D2B1F)
+
+    val days = listOf(
+        DayOfWeek.MONDAY,
+        DayOfWeek.TUESDAY,
+        DayOfWeek.WEDNESDAY,
+        DayOfWeek.THURSDAY,
+        DayOfWeek.FRIDAY,
+        DayOfWeek.SATURDAY,
+        DayOfWeek.SUNDAY
+    )
+
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(6.dp)
     ) {
         days.forEach {
@@ -210,7 +241,8 @@ fun WeekDayHeader() {
                 text = it.getDisplayName(TextStyle.SHORT, Locale.getDefault()),
                 modifier = Modifier.weight(1f),
                 textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.labelSmall
+                style = MaterialTheme.typography.titleMedium,
+                color = brown
             )
         }
     }
@@ -224,9 +256,16 @@ fun RowScope.DayCell(
     bloodflowMap: Map<Long, Int>,
     predictedMap: Map<Long, Int>
 ) {
+    val brown = Color(0xFF3D2B1F)
+    val yellow = Color(0xFFFBF3D3)
+    val futureText = Color(0x993D2B1F)
+    val cellShape = RoundedCornerShape(8.dp)
+
     val date = month.atDay(day)
     val today = LocalDate.now()
-    val isClickable = !date.isAfter(today)
+
+    val isFuture = date.isAfter(today)
+    val isClickable = !isFuture
 
     val dateLong = date
         .atStartOfDay(ZoneId.systemDefault())
@@ -239,23 +278,23 @@ fun RowScope.DayCell(
     val flowToShow = realFlow ?: predictedFlow
     val isPredicted = realFlow == null && predictedFlow != null
 
-    // ✅ this must be here (NOT inside imageRes)
     val hasRealPeriod = realFlow != null && realFlow > 0
 
-    val bgColor = if (isClickable) Color(0xFFEFECE5) else Color(0xFFDDDAD3)
+    val fillColor = if (!isFuture) yellow else Color.Transparent
+
+    val futureOutline = if (isFuture) {
+        Modifier.border(width = 2.dp, color = yellow, shape = cellShape)
+    } else Modifier
 
     Box(
         modifier = Modifier
             .weight(1f)
             .aspectRatio(1f)
-            .background(bgColor, RoundedCornerShape(8.dp))
+            .background(fillColor, cellShape)
+            .then(futureOutline)
             .then(
                 if (hasRealPeriod) {
-                    Modifier.border(
-                        width = 2.dp,
-                        color = Color.Red,
-                        shape = RoundedCornerShape(8.dp)
-                    )
+                    Modifier.border(width = 2.dp, color = Color.Red, shape = cellShape)
                 } else Modifier
             )
             .then(
@@ -266,20 +305,11 @@ fun RowScope.DayCell(
         contentAlignment = Alignment.Center
     ) {
         flowToShow?.let { value ->
-            val imageRes = if (isPredicted) {
-                when (value) {
-                    1 -> R.drawable.little_blood_full
-                    2 -> R.drawable.middle_blood_full
-                    3 -> R.drawable.big_blood_full
-                    else -> null
-                }
-            } else {
-                when (value) {
-                    1 -> R.drawable.little_blood_full
-                    2 -> R.drawable.middle_blood_full
-                    3 -> R.drawable.big_blood_full
-                    else -> null
-                }
+            val imageRes = when (value) {
+                1 -> R.drawable.little_blood_full
+                2 -> R.drawable.middle_blood_full
+                3 -> R.drawable.big_blood_full
+                else -> null
             }
 
             imageRes?.let {
@@ -297,12 +327,10 @@ fun RowScope.DayCell(
         Text(
             text = day.toString(),
             style = MaterialTheme.typography.bodyLarge,
-            color = if (isClickable) Color.Black else Color.Gray
-
+            color = if (isFuture) futureText else brown
         )
     }
 }
-
 
 @Composable
 fun RowScope.EmptyCell() {

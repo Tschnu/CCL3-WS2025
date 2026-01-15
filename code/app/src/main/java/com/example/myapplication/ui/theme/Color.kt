@@ -11,9 +11,10 @@ val BrownLight = Color(0xFF6F4E37)
 
 val RedDark = Color(0xFF630602)
 val RedLight = Color(0xFFE45853)
-val BackgroundRed = Color(0xFFDECCCB)
+val BackgroundRed = Color(0xFFFFFFFF)
 
 val YellowStrong = Color(0xFFDEBE00)
 val YellowSoft = Color(0xFFEBD365)
+val softsoftyellow = Color(0xFFFBF3D3)
 
 val Cream = Color(0xFFF5EFD5)
