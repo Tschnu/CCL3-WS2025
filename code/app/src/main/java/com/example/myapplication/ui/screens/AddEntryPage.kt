@@ -88,11 +88,11 @@ fun AddEntryPage(
         SectionTitle("Mood")
         ValueImageRow(
             items = listOf(
-                R.drawable.no_energy to 0,
-                R.drawable.little_energy to 1,
-                R.drawable.middle_energy to 2,
-                R.drawable.little_less_energy to 3,
-                R.drawable.full_energy to 4
+                R.drawable.awful to 0,
+                R.drawable.bad to 1,
+                R.drawable.okay to 2,
+                R.drawable.happy to 3,
+                R.drawable.veryhappy to 4
             ),
             selectedValue = mood,
             onSelect = viewModel::setMoodCategory
