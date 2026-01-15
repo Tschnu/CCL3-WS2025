@@ -175,37 +175,43 @@ fun RowScope.DayCell(
     navController: NavController,
     bloodflowMap: Map<Long, Int>
 ) {
-    val dateLong = month.atDay(day)
+    val date = month.atDay(day)
+    val today = LocalDate.now()
+    val isClickable = !date.isAfter(today)
+
+    val dateLong = date
         .atStartOfDay(ZoneId.systemDefault())
         .toInstant()
         .toEpochMilli()
 
     val bloodflow = bloodflowMap[dateLong]
 
+    val bgColor = if (isClickable) Color(0xFFEFECE5) else Color(0xFFDDDAD3)
+
     Box(
         modifier = Modifier
             .weight(1f)
             .aspectRatio(1f)
-            .background(Color(0xFFEFECE5), RoundedCornerShape(8.dp))
-            .clickable {
-                navController.navigate(
-                    Screen.AddEntry.createRoute(
-                        LocalDate.ofEpochDay(dateLong / 86_400_000).toString()
-                    )
-                )
-            },
+            .background(bgColor, RoundedCornerShape(8.dp))
+            .then(
+                if (isClickable) Modifier.clickable {
+                    // ✅ use the real LocalDate string, not epoch math
+                    navController.navigate(Screen.AddEntry.createRoute(date.toString()))
+                } else Modifier
+            ),
         contentAlignment = Alignment.Center
     ) {
-
-        bloodflow?.let {
-            val image = when (it) {
+        // ✅ Show image if there is bloodflow stored for that date
+        bloodflow?.let { value ->
+            val imageRes = when (value) {
+                // supports both 0/1/2 and 1/2/3 systems
                 1 -> R.drawable.little_blood_full
                 2 -> R.drawable.middle_blood_full
                 3 -> R.drawable.big_blood_full
                 else -> null
             }
 
-            image?.let {
+            imageRes?.let {
                 Image(
                     painter = painterResource(it),
                     contentDescription = null,
@@ -217,10 +223,11 @@ fun RowScope.DayCell(
         Text(
             text = day.toString(),
             style = MaterialTheme.typography.bodyMedium,
-            color = Color.Black
+            color = if (isClickable) Color.Black else Color.Gray
         )
     }
 }
+
 
 @Composable
 fun RowScope.EmptyCell() {

@@ -20,11 +20,11 @@ import java.time.LocalDate
 fun AddEntryPage(
     date: String,
     viewModel: EntryViewModel,
-    onNavigateBack: () -> Unit  // Add this parameter
+    onNavigateBack: () -> Unit
 ) {
     val localDate = remember(date) { LocalDate.parse(date) }
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(localDate) {
         viewModel.loadEntryForDate(localDate)
     }
 
@@ -43,40 +43,40 @@ fun AddEntryPage(
         Text(date, style = MaterialTheme.typography.bodyMedium)
 
         SectionTitle("Blood Flow")
-        ImageRow(
-            images = listOf(
-                R.drawable.big_blood_full,
-                R.drawable.middle_blood_full,
-                R.drawable.little_blood_full,
-                R.drawable.nothing
+        ValueImageRow(
+            items = listOf(
+                R.drawable.nothing to 0,
+                R.drawable.big_blood_full to 3,
+                R.drawable.middle_blood_full to 2,
+                R.drawable.little_blood_full to 1
             ),
-            selectedIndex = bloodflow,
+            selectedValue = bloodflow,
             onSelect = viewModel::setBloodflowCategory
         )
 
         SectionTitle("Pain")
-        ImageRow(
-            images = listOf(
-                R.drawable.very_big_pain,
-                R.drawable.big_pain,
-                R.drawable.moderate_pain,
-                R.drawable.little_pain,
-                R.drawable.nothing
+        ValueImageRow(
+            items = listOf(
+                R.drawable.nothing to 0,
+                R.drawable.little_pain to 1,
+                R.drawable.moderate_pain to 2,
+                R.drawable.big_pain to 3,
+                R.drawable.very_big_pain to 4
             ),
-            selectedIndex = pain,
+            selectedValue = pain,
             onSelect = viewModel::setPainCategory
         )
 
         SectionTitle("Energy Level")
-        ImageRow(
-            images = listOf(
-                R.drawable.full_energy,
-                R.drawable.little_less_energy,
-                R.drawable.middle_energy,
-                R.drawable.little_energy,
-                R.drawable.no_energy
+        ValueImageRow(
+            items = listOf(
+                R.drawable.no_energy to 0,
+                R.drawable.little_energy to 1,
+                R.drawable.middle_energy to 2,
+                R.drawable.little_less_energy to 3,
+                R.drawable.full_energy to 4
             ),
-            selectedIndex = energy,
+            selectedValue = energy,
             onSelect = viewModel::setEnergyCategory
         )
 
@@ -85,7 +85,7 @@ fun AddEntryPage(
         Button(
             onClick = {
                 viewModel.saveEntry()
-                onNavigateBack()  // Navigate back after saving
+                onNavigateBack()
             },
             modifier = Modifier.align(Alignment.CenterHorizontally)
         ) {
@@ -94,31 +94,34 @@ fun AddEntryPage(
     }
 }
 
-
 @Composable
 fun SectionTitle(text: String) {
     Text(text, style = MaterialTheme.typography.labelLarge)
 }
 
+/**
+ * Row that decouples UI order from stored values.
+ * items = listOf(imageRes to storedValue)
+ */
 @Composable
-fun ImageRow(
-    images: List<Int>,
-    selectedIndex: Int,
+fun ValueImageRow(
+    items: List<Pair<Int, Int>>,
+    selectedValue: Int,
     onSelect: (Int) -> Unit
 ) {
     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-        images.forEachIndexed { index, res ->
+        items.forEach { (imageRes, value) ->
             Image(
-                painter = painterResource(res),
+                painter = painterResource(imageRes),
                 contentDescription = null,
                 modifier = Modifier
                     .size(56.dp)
                     .border(
-                        width = if (index == selectedIndex) 2.dp else 0.dp,
+                        width = if (value == selectedValue) 2.dp else 0.dp,
                         color = Color.Black,
                         shape = RoundedCornerShape(8.dp)
                     )
-                    .clickable { onSelect(index) }
+                    .clickable { onSelect(value) }
             )
         }
     }
