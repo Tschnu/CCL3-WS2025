@@ -13,7 +13,7 @@ private val DarkColorScheme = darkColorScheme(
     secondary = GreenDark,
     tertiary = YellowStrong,
 
-    background = Cream,
+    background = Greenish,
     surface = Cream,
 
     onPrimary = Cream,
@@ -27,7 +27,7 @@ private val LightColorScheme = lightColorScheme(
     secondary = GreenDark,
     tertiary = YellowStrong,
 
-    background = Cream,
+    background = Greenish,
     surface = Cream,
 
     onPrimary = Cream,

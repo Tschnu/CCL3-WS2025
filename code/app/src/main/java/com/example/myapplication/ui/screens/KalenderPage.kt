@@ -110,8 +110,8 @@ fun MonthCalendar(
         Text(
             text = month.month
                 .getDisplayName(TextStyle.FULL, Locale.getDefault())
-                .replaceFirstChar { it.uppercase() } + " ${month.year}",
-            style = MaterialTheme.typography.titleMedium,
+                .replaceFirstChar { it.uppercase() } + "${month.year}",
+            style = MaterialTheme.typography.bodyLarge,
             modifier = Modifier.padding(bottom = 12.dp)
         )
 
@@ -185,7 +185,7 @@ fun RowScope.DayCell(
             .weight(1f)
             .aspectRatio(1f)
             .background(
-                color = if (isClickable) Color(0xFFEFECE5) else Color(0xFFDDDAD3),
+                color = if (isClickable) Color(0xFFFFFFFF) else Color(0xFFE5E2DC),
                 shape = RoundedCornerShape(8.dp)
             )
             .then(
