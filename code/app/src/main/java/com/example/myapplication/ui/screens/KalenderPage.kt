@@ -296,8 +296,9 @@ fun RowScope.DayCell(
 
         Text(
             text = day.toString(),
-            style = MaterialTheme.typography.bodyMedium,
+            style = MaterialTheme.typography.bodyLarge,
             color = if (isClickable) Color.Black else Color.Gray
+
         )
     }
 }
