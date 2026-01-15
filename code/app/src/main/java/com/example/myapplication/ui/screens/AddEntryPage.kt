@@ -98,7 +98,6 @@ fun AddEntryPage(
             onSelect = viewModel::setMoodCategory
         )
 
-        // -------- Journal --------
         SectionTitle("Journal")
         OutlinedTextField(
             value = journal,
