@@ -9,7 +9,7 @@ import com.example.myapplication.db.converters.DailyLogConverter
 
 @Database(
     entities = [DailyEntryEntity::class],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 @TypeConverters(DailyLogConverter::class)
@@ -28,7 +28,10 @@ abstract class DailyEntryDatabase : RoomDatabase() {
                     context.applicationContext,
                     DailyEntryDatabase::class.java,
                     "daily_entry_database"
-                ).build()
+                )
+                    .fallbackToDestructiveMigration()
+                    .build()
+
                 INSTANCE = instance
                 instance
             }

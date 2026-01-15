@@ -11,5 +11,6 @@ data class DailyEntryEntity(
     val painCategory: Int,
     val energyCategory: Int,
     val moodCategory: Int,
-    val bloodflowCategory: Int
+    val bloodflowCategory: Int,
+    val journalText: String
 )

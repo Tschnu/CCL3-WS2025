@@ -4,7 +4,9 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -31,10 +33,13 @@ fun AddEntryPage(
     val bloodflow by viewModel.bloodflowCategory.collectAsState()
     val pain by viewModel.painCategory.collectAsState()
     val energy by viewModel.energyCategory.collectAsState()
+    val mood by viewModel.moodCategory.collectAsState()
+    val journal by viewModel.journalText.collectAsState()
 
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .verticalScroll(rememberScrollState())
             .padding(24.dp),
         verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
@@ -46,9 +51,9 @@ fun AddEntryPage(
         ValueImageRow(
             items = listOf(
                 R.drawable.nothing to 0,
-                R.drawable.big_blood_full to 3,
+                R.drawable.little_blood_full to 1,
                 R.drawable.middle_blood_full to 2,
-                R.drawable.little_blood_full to 1
+                R.drawable.big_blood_full to 3
             ),
             selectedValue = bloodflow,
             onSelect = viewModel::setBloodflowCategory
@@ -80,7 +85,31 @@ fun AddEntryPage(
             onSelect = viewModel::setEnergyCategory
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
+        SectionTitle("Mood")
+        ValueImageRow(
+            items = listOf(
+                R.drawable.no_energy to 0,
+                R.drawable.little_energy to 1,
+                R.drawable.middle_energy to 2,
+                R.drawable.little_less_energy to 3,
+                R.drawable.full_energy to 4
+            ),
+            selectedValue = mood,
+            onSelect = viewModel::setMoodCategory
+        )
+
+        // -------- Journal --------
+        SectionTitle("Journal")
+        OutlinedTextField(
+            value = journal,
+            onValueChange = viewModel::setJournalText,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(140.dp),
+            placeholder = { Text("How do you feel today?") },
+            shape = RoundedCornerShape(12.dp)
+        )
+
 
         Button(
             onClick = {
@@ -96,13 +125,12 @@ fun AddEntryPage(
 
 @Composable
 fun SectionTitle(text: String) {
-    Text(text, style = MaterialTheme.typography.labelLarge)
+    Text(
+        text = text,
+        style = MaterialTheme.typography.labelLarge
+    )
 }
 
-/**
- * Row that decouples UI order from stored values.
- * items = listOf(imageRes to storedValue)
- */
 @Composable
 fun ValueImageRow(
     items: List<Pair<Int, Int>>,

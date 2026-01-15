@@ -26,6 +26,9 @@ class EntryViewModel(application: Application) : AndroidViewModel(application) {
     private val _moodCategory = MutableStateFlow(0)
     val moodCategory: StateFlow<Int> = _moodCategory
 
+    private val _journalText = MutableStateFlow("")
+    val journalText: StateFlow<String> = _journalText
+
     private val _bloodflowCategory = MutableStateFlow(0)
     val bloodflowCategory: StateFlow<Int> = _bloodflowCategory
 
@@ -42,6 +45,7 @@ class EntryViewModel(application: Application) : AndroidViewModel(application) {
     fun setPainCategory(value: Int) { _painCategory.value = value }
     fun setEnergyCategory(value: Int) { _energyCategory.value = value }
     fun setMoodCategory(value: Int) { _moodCategory.value = value }
+    fun setJournalText(text: String) { _journalText.value = text }
     fun setBloodflowCategory(value: Int) { _bloodflowCategory.value = value }
 
     fun loadEntryForDate(date: LocalDate) {
@@ -57,6 +61,8 @@ class EntryViewModel(application: Application) : AndroidViewModel(application) {
                     _energyCategory.value = it.energyCategory
                     _moodCategory.value = it.moodCategory
                     _bloodflowCategory.value = it.bloodflowCategory
+                    _journalText.value = it.journalText
+
                 }
             }
         }
@@ -69,7 +75,6 @@ class EntryViewModel(application: Application) : AndroidViewModel(application) {
                 // ✅ REAL calendar map (Long -> Int)
                 _bloodflowByDate.value = list.associate { it.date to it.bloodflowCategory }
 
-                // ✅ Convert DB list -> LocalDate map for prediction
                 val localDateMap: Map<LocalDate, Int> = list.associate { entity ->
                     val ld = Instant.ofEpochMilli(entity.date)
                         .atZone(ZoneId.systemDefault())
@@ -77,7 +82,6 @@ class EntryViewModel(application: Application) : AndroidViewModel(application) {
                     ld to entity.bloodflowCategory
                 }
 
-                // ✅ Convert range longs -> LocalDate
                 val rangeStartLocal = Instant.ofEpochMilli(start)
                     .atZone(ZoneId.systemDefault())
                     .toLocalDate()
@@ -86,14 +90,12 @@ class EntryViewModel(application: Application) : AndroidViewModel(application) {
                     .atZone(ZoneId.systemDefault())
                     .toLocalDate()
 
-                // ✅ Predict repeated future periods inside visible range
                 val predictedLocalDateMap = PeriodForecast.predictFutureFlowInRange(
                     entriesByDate = localDateMap,
                     rangeStart = rangeStartLocal,
                     rangeEnd = rangeEndLocal
                 )
 
-                // ✅ Convert predicted LocalDate -> Long (start-of-day millis)
                 _predictedBloodflowByDate.value = predictedLocalDateMap.mapKeys { (localDate, _) ->
                     localDate
                         .atStartOfDay(ZoneId.systemDefault())
@@ -112,7 +114,8 @@ class EntryViewModel(application: Application) : AndroidViewModel(application) {
             painCategory = painCategory.value,
             energyCategory = energyCategory.value,
             moodCategory = moodCategory.value,
-            bloodflowCategory = bloodflowCategory.value
+            bloodflowCategory = bloodflowCategory.value,
+            journalText = journalText.value
         )
 
         viewModelScope.launch {
