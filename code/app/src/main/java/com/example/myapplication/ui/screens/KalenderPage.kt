@@ -113,6 +113,40 @@ fun CalendarHeader() {
     }
 }
 
+
+@Composable
+fun MonthHeader(month: YearMonth) {
+    val title =
+        month.month.getDisplayName(TextStyle.FULL, Locale.getDefault())
+            .replaceFirstChar { it.uppercase() } + " ${month.year}"
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Divider(
+            thickness = 2.dp,
+            color = Color(0xFF3D2B1F),
+            modifier = Modifier.fillMaxWidth(0.98f)
+        )
+
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.padding(vertical = 2.dp)
+        )
+
+        Divider(
+            thickness = 2.dp,
+            color = Color(0xFF3D2B1F),
+            modifier = Modifier.fillMaxWidth(0.98f)
+        )
+    }
+}
+
+
 @Composable
 fun MonthCalendar(
     month: YearMonth,
@@ -125,12 +159,10 @@ fun MonthCalendar(
     val firstDayOffset = (firstDayOfMonth.dayOfWeek.value + 6) % 7
 
     Column {
-        Text(
-            text = month.month.getDisplayName(TextStyle.FULL, Locale.getDefault())
-                .replaceFirstChar { it.uppercase() } + " ${month.year}",
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.padding(bottom = 12.dp)
-        )
+
+            MonthHeader(month)
+
+
 
         WeekDayHeader()
         Spacer(modifier = Modifier.height(8.dp))
