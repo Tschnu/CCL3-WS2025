@@ -2,6 +2,7 @@ package com.example.myapplication.ui.screens
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -11,7 +12,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Divider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -24,7 +28,10 @@ import androidx.navigation.NavController
 import com.example.myapplication.R
 import com.example.myapplication.ui.navigation.Screen
 import com.example.myapplication.viewModel.EntryViewModel
-import java.time.*
+import java.time.DayOfWeek
+import java.time.LocalDate
+import java.time.YearMonth
+import java.time.ZoneId
 import java.time.format.TextStyle
 import java.util.Locale
 
@@ -35,12 +42,14 @@ fun KalenderPage(navController: NavController) {
     val monthsAfter = 6
 
     val startMonth = YearMonth.now().minusMonths(monthsBefore.toLong())
-    val months = (0..(monthsBefore + monthsAfter)).map {
-        startMonth.plusMonths(it.toLong())
+    val months = remember(monthsBefore, monthsAfter) {
+        (0..(monthsBefore + monthsAfter)).map { startMonth.plusMonths(it.toLong()) }
     }
 
     val entryViewModel: EntryViewModel = viewModel()
+
     val bloodflowMap = entryViewModel.bloodflowByDate.collectAsState().value
+    val predictedBloodflowMap = entryViewModel.predictedBloodflowByDate.collectAsState().value
 
     val startDateLong = months.first().atDay(1)
         .atStartOfDay(ZoneId.systemDefault())
@@ -72,7 +81,8 @@ fun KalenderPage(navController: NavController) {
                 MonthCalendar(
                     month = month,
                     navController = navController,
-                    bloodflowMap = bloodflowMap
+                    bloodflowMap = bloodflowMap,
+                    predictedMap = predictedBloodflowMap
                 )
             }
         }
@@ -82,7 +92,9 @@ fun KalenderPage(navController: NavController) {
 @Composable
 fun CalendarHeader() {
     Column(
-        modifier = Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 4.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 8.dp, bottom = 4.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Image(
@@ -94,7 +106,9 @@ fun CalendarHeader() {
         Divider(
             color = Color(0xFF3D2B1F),
             thickness = 2.dp,
-            modifier = Modifier.padding(top = 4.dp).fillMaxWidth(0.9f)
+            modifier = Modifier
+                .padding(top = 4.dp)
+                .fillMaxWidth(0.9f)
         )
     }
 }
@@ -103,7 +117,8 @@ fun CalendarHeader() {
 fun MonthCalendar(
     month: YearMonth,
     navController: NavController,
-    bloodflowMap: Map<Long, Int>
+    bloodflowMap: Map<Long, Int>,
+    predictedMap: Map<Long, Int>
 ) {
     val firstDayOfMonth = month.atDay(1)
     val daysInMonth = month.lengthOfMonth()
@@ -138,7 +153,8 @@ fun MonthCalendar(
                                 day = dayNumber,
                                 month = month,
                                 navController = navController,
-                                bloodflowMap = bloodflowMap
+                                bloodflowMap = bloodflowMap,
+                                predictedMap = predictedMap
                             )
                         } else {
                             EmptyCell()
@@ -173,7 +189,8 @@ fun RowScope.DayCell(
     day: Int,
     month: YearMonth,
     navController: NavController,
-    bloodflowMap: Map<Long, Int>
+    bloodflowMap: Map<Long, Int>,
+    predictedMap: Map<Long, Int>
 ) {
     val date = month.atDay(day)
     val today = LocalDate.now()
@@ -184,7 +201,14 @@ fun RowScope.DayCell(
         .toInstant()
         .toEpochMilli()
 
-    val bloodflow = bloodflowMap[dateLong]
+    val realFlow = bloodflowMap[dateLong]
+    val predictedFlow = predictedMap[dateLong]
+
+    val flowToShow = realFlow ?: predictedFlow
+    val isPredicted = realFlow == null && predictedFlow != null
+
+    // ✅ this must be here (NOT inside imageRes)
+    val hasRealPeriod = realFlow != null && realFlow > 0
 
     val bgColor = if (isClickable) Color(0xFFEFECE5) else Color(0xFFDDDAD3)
 
@@ -194,28 +218,46 @@ fun RowScope.DayCell(
             .aspectRatio(1f)
             .background(bgColor, RoundedCornerShape(8.dp))
             .then(
+                if (hasRealPeriod) {
+                    Modifier.border(
+                        width = 2.dp,
+                        color = Color.Red,
+                        shape = RoundedCornerShape(8.dp)
+                    )
+                } else Modifier
+            )
+            .then(
                 if (isClickable) Modifier.clickable {
-                    // ✅ use the real LocalDate string, not epoch math
                     navController.navigate(Screen.AddEntry.createRoute(date.toString()))
                 } else Modifier
             ),
         contentAlignment = Alignment.Center
     ) {
-        // ✅ Show image if there is bloodflow stored for that date
-        bloodflow?.let { value ->
-            val imageRes = when (value) {
-                // supports both 0/1/2 and 1/2/3 systems
-                1 -> R.drawable.little_blood_full
-                2 -> R.drawable.middle_blood_full
-                3 -> R.drawable.big_blood_full
-                else -> null
+        flowToShow?.let { value ->
+            val imageRes = if (isPredicted) {
+                when (value) {
+                    1 -> R.drawable.little_blood_full
+                    2 -> R.drawable.middle_blood_full
+                    3 -> R.drawable.big_blood_full
+                    else -> null
+                }
+            } else {
+                when (value) {
+                    1 -> R.drawable.little_blood_full
+                    2 -> R.drawable.middle_blood_full
+                    3 -> R.drawable.big_blood_full
+                    else -> null
+                }
             }
 
             imageRes?.let {
                 Image(
                     painter = painterResource(it),
                     contentDescription = null,
-                    modifier = Modifier.fillMaxSize().padding(4.dp)
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(4.dp),
+                    alpha = if (isPredicted) 0.5f else 1f
                 )
             }
         }
@@ -232,6 +274,8 @@ fun RowScope.DayCell(
 @Composable
 fun RowScope.EmptyCell() {
     Box(
-        modifier = Modifier.weight(1f).aspectRatio(1f)
+        modifier = Modifier
+            .weight(1f)
+            .aspectRatio(1f)
     )
 }
