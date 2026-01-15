@@ -3,6 +3,7 @@ package com.example.myapplication.ui.navigation
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -22,7 +23,6 @@ fun BottomBar(navController: NavController) {
                 selected = selected,
                 onClick = {
                     navController.navigate(screen.route) {
-                        // prevents building a giant back stack when switching tabs
                         popUpTo(navController.graph.startDestinationId) {
                             saveState = true
                         }
@@ -31,7 +31,10 @@ fun BottomBar(navController: NavController) {
                     }
                 },
                 icon = { Icon(screen.icon, contentDescription = screen.label) },
-                label = { Text(screen.label) }
+                label = { Text(
+                    screen.label,
+                    style = MaterialTheme.typography.bodyMedium
+                    ) }
             )
         }
     }
