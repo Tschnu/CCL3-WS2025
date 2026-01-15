@@ -1,12 +1,15 @@
 package com.example.myapplication.ui.screens
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -17,6 +20,25 @@ import androidx.compose.ui.unit.dp
 import com.example.myapplication.R
 import com.example.myapplication.viewModel.EntryViewModel
 import java.time.LocalDate
+
+
+@Composable
+fun AddEntryHeader(onBack: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            imageVector = Icons.Default.ArrowBack,
+            contentDescription = "Back",
+            modifier = Modifier
+                .size(28.dp)
+                .clickable { onBack() }
+        )
+    }
+}
 
 @Composable
 fun AddEntryPage(
@@ -43,6 +65,7 @@ fun AddEntryPage(
             .padding(24.dp),
         verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
+        AddEntryHeader(onNavigateBack)
 
         Text("Add Entry", style = MaterialTheme.typography.titleMedium)
         Text(date, style = MaterialTheme.typography.bodyMedium)
@@ -86,17 +109,18 @@ fun AddEntryPage(
         )
 
         SectionTitle("Mood")
-        ValueImageRow(
-            items = listOf(
-                R.drawable.awful to 0,
-                R.drawable.bad to 1,
-                R.drawable.okay to 2,
-                R.drawable.happy to 3,
-                R.drawable.veryhappy to 4
+        MoodBar(
+            moods = listOf(
+                R.drawable.awful,
+                R.drawable.bad,
+                R.drawable.okay,
+                R.drawable.happy,
+                R.drawable.veryhappy
             ),
             selectedValue = mood,
             onSelect = viewModel::setMoodCategory
         )
+
 
         SectionTitle("Journal")
         OutlinedTextField(
@@ -143,6 +167,10 @@ fun ValueImageRow(
                 contentDescription = null,
                 modifier = Modifier
                     .size(56.dp)
+                    .background(
+                        color = Color.White,
+                        shape = RoundedCornerShape(8.dp)
+                    )
                     .border(
                         width = if (value == selectedValue) 2.dp else 0.dp,
                         color = Color.Black,
@@ -153,3 +181,40 @@ fun ValueImageRow(
         }
     }
 }
+
+@Composable
+fun MoodBar(
+    moods: List<Int>,
+    selectedValue: Int,
+    onSelect: (Int) -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color.White, RoundedCornerShape(12.dp))
+            .border(1.dp, Color.Black, RoundedCornerShape(12.dp))
+            .padding(vertical = 8.dp),
+        horizontalArrangement = Arrangement.SpaceEvenly,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        moods.forEachIndexed { index, res ->
+            Box(
+                modifier = Modifier
+                    .size(44.dp)
+                    .background(
+                        color = if (index == selectedValue) Color(0xFFEFECE5) else Color.Transparent,
+                        shape = RoundedCornerShape(50)
+                    )
+                    .clickable { onSelect(index) },
+                contentAlignment = Alignment.Center
+            ) {
+                Image(
+                    painter = painterResource(res),
+                    contentDescription = null,
+                    modifier = Modifier.size(28.dp)
+                )
+            }
+        }
+    }
+}
+
