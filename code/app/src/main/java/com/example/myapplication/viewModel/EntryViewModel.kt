@@ -27,6 +27,10 @@ class EntryViewModel(application: Application) : AndroidViewModel(application){
 
     private var currentDate: Long = 0L
 
+    private val _bloodflowByDate = MutableStateFlow<Map<Long, Int>>(emptyMap())
+    val bloodflowByDate: StateFlow<Map<Long, Int>> = _bloodflowByDate
+
+
     fun setPainCategory(value: Int) {
         _painCategory.value = value
     }
@@ -60,6 +64,15 @@ class EntryViewModel(application: Application) : AndroidViewModel(application){
             }
         }
     }
+
+    fun loadBloodflowForRange(start: Long, end: Long) {
+        viewModelScope.launch {
+            dao.getEntriesBetween(start, end).collect { list ->
+                _bloodflowByDate.value = list.associate { it.date to it.bloodflowCategory }
+            }
+        }
+    }
+
 
     fun saveEntry() {
         if(currentDate == 0L) return

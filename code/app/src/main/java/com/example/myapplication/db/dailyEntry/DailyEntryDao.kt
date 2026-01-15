@@ -25,4 +25,8 @@ interface DailyEntryDao {
 
     @Query("SELECT * FROM dailyEntry WHERE date = :date LIMIT 1")
     fun getEntryByDate(date: Long): Flow<DailyEntryEntity?>
+
+    @Query("SELECT * FROM dailyEntry WHERE date BETWEEN :startDate AND :endDate")
+    fun getEntriesBetween(startDate: Long, endDate: Long): Flow<List<DailyEntryEntity>>
+
 }
