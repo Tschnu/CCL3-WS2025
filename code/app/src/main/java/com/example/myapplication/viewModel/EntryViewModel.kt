@@ -74,6 +74,9 @@ class EntryViewModel(application: Application) : AndroidViewModel(application){
     }
 
 
+
+
+
     fun saveEntry() {
         if(currentDate == 0L) return
 

@@ -11,7 +11,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Divider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -19,13 +19,12 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.RowScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.myapplication.R
 import com.example.myapplication.ui.navigation.Screen
-import java.time.DayOfWeek
-import java.time.LocalDate
-import java.time.Year
-import java.time.YearMonth
+import com.example.myapplication.viewModel.EntryViewModel
+import java.time.*
 import java.time.format.TextStyle
 import java.util.Locale
 
@@ -40,14 +39,26 @@ fun KalenderPage(navController: NavController) {
         startMonth.plusMonths(it.toLong())
     }
 
-    val listState = rememberLazyListState(
-        initialFirstVisibleItemIndex = monthsBefore
-    )
+    val entryViewModel: EntryViewModel = viewModel()
+    val bloodflowMap = entryViewModel.bloodflowByDate.collectAsState().value
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-    ) {
+    val startDateLong = months.first().atDay(1)
+        .atStartOfDay(ZoneId.systemDefault())
+        .toInstant()
+        .toEpochMilli()
+
+    val endDateLong = months.last().atEndOfMonth()
+        .atStartOfDay(ZoneId.systemDefault())
+        .toInstant()
+        .toEpochMilli()
+
+    LaunchedEffect(startDateLong, endDateLong) {
+        entryViewModel.loadBloodflowForRange(startDateLong, endDateLong)
+    }
+
+    val listState = rememberLazyListState(initialFirstVisibleItemIndex = monthsBefore)
+
+    Column(modifier = Modifier.fillMaxSize()) {
         CalendarHeader()
 
         LazyColumn(
@@ -58,60 +69,51 @@ fun KalenderPage(navController: NavController) {
             verticalArrangement = Arrangement.spacedBy(32.dp)
         ) {
             items(months) { month ->
-                MonthCalendar(month = month, navController = navController)
+                MonthCalendar(
+                    month = month,
+                    navController = navController,
+                    bloodflowMap = bloodflowMap
+                )
             }
         }
-
-
     }
 }
 
 @Composable
 fun CalendarHeader() {
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 8.dp, bottom = 4.dp),
+        modifier = Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 4.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-
         Image(
             painter = painterResource(R.drawable.logo),
             contentDescription = "Quiet Bloom Logo",
-            modifier = Modifier
-                .height(120.dp)
-                .wrapContentWidth()
+            modifier = Modifier.height(120.dp)
         )
 
         Divider(
             color = Color(0xFF3D2B1F),
             thickness = 2.dp,
-            modifier = Modifier
-                .padding(top = 4.dp)
-                .fillMaxWidth(0.9f)
+            modifier = Modifier.padding(top = 4.dp).fillMaxWidth(0.9f)
         )
     }
 }
 
-
-
-
 @Composable
 fun MonthCalendar(
     month: YearMonth,
-    navController: NavController
+    navController: NavController,
+    bloodflowMap: Map<Long, Int>
 ) {
-    val today = LocalDate.now()
     val firstDayOfMonth = month.atDay(1)
     val daysInMonth = month.lengthOfMonth()
     val firstDayOffset = (firstDayOfMonth.dayOfWeek.value + 6) % 7
 
     Column {
         Text(
-            text = month.month
-                .getDisplayName(TextStyle.FULL, Locale.getDefault())
-                .replaceFirstChar { it.uppercase() } + "${month.year}",
-            style = MaterialTheme.typography.bodyLarge,
+            text = month.month.getDisplayName(TextStyle.FULL, Locale.getDefault())
+                .replaceFirstChar { it.uppercase() } + " ${month.year}",
+            style = MaterialTheme.typography.titleMedium,
             modifier = Modifier.padding(bottom = 12.dp)
         )
 
@@ -132,7 +134,12 @@ fun MonthCalendar(
                         val dayNumber = cellIndex - firstDayOffset + 1
 
                         if (dayNumber in 1..daysInMonth) {
-                            DayCell(day = dayNumber, month = month, navController = navController)
+                            DayCell(
+                                day = dayNumber,
+                                month = month,
+                                navController = navController,
+                                bloodflowMap = bloodflowMap
+                            )
                         } else {
                             EmptyCell()
                         }
@@ -145,16 +152,7 @@ fun MonthCalendar(
 
 @Composable
 fun WeekDayHeader() {
-    val days = listOf(
-        DayOfWeek.MONDAY,
-        DayOfWeek.TUESDAY,
-        DayOfWeek.WEDNESDAY,
-        DayOfWeek.THURSDAY,
-        DayOfWeek.FRIDAY,
-        DayOfWeek.SATURDAY,
-        DayOfWeek.SUNDAY
-    )
-
+    val days = DayOfWeek.values().toList()
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(6.dp)
@@ -174,33 +172,52 @@ fun WeekDayHeader() {
 fun RowScope.DayCell(
     day: Int,
     month: YearMonth,
-    navController: NavController
+    navController: NavController,
+    bloodflowMap: Map<Long, Int>
 ) {
-    val date = month.atDay(day)
-    val today = LocalDate.now()
-    val isClickable = !date.isAfter(today)
+    val dateLong = month.atDay(day)
+        .atStartOfDay(ZoneId.systemDefault())
+        .toInstant()
+        .toEpochMilli()
+
+    val bloodflow = bloodflowMap[dateLong]
 
     Box(
         modifier = Modifier
             .weight(1f)
             .aspectRatio(1f)
-            .background(
-                color = if (isClickable) Color(0xFFFFFFFF) else Color(0xFFE5E2DC),
-                shape = RoundedCornerShape(8.dp)
-            )
-            .then(
-                if (isClickable) Modifier.clickable {
-                    navController.navigate(
-                        Screen.AddEntry.createRoute(date.toString())
+            .background(Color(0xFFEFECE5), RoundedCornerShape(8.dp))
+            .clickable {
+                navController.navigate(
+                    Screen.AddEntry.createRoute(
+                        LocalDate.ofEpochDay(dateLong / 86_400_000).toString()
                     )
-                } else Modifier
-            ),
+                )
+            },
         contentAlignment = Alignment.Center
     ) {
+
+        bloodflow?.let {
+            val image = when (it) {
+                1 -> R.drawable.little_blood_full
+                2 -> R.drawable.middle_blood_full
+                3 -> R.drawable.big_blood_full
+                else -> null
+            }
+
+            image?.let {
+                Image(
+                    painter = painterResource(it),
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize().padding(4.dp)
+                )
+            }
+        }
+
         Text(
             text = day.toString(),
             style = MaterialTheme.typography.bodyMedium,
-            color = if (isClickable) Color.Black else Color.Gray
+            color = Color.Black
         )
     }
 }
@@ -208,8 +225,6 @@ fun RowScope.DayCell(
 @Composable
 fun RowScope.EmptyCell() {
     Box(
-        modifier = Modifier
-            .weight(1f)
-            .aspectRatio(1f)
+        modifier = Modifier.weight(1f).aspectRatio(1f)
     )
 }
