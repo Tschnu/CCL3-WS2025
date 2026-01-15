@@ -29,8 +29,12 @@ fun AppNavHost(
         composable(Screen.StatisticsPage.route) { StatisticsPage() }
         composable(Screen.Profile.route) {
             val personalViewModel: PersonalViewModel = viewModel()
-            PersonalProfilePage(viewModel = personalViewModel)
+            PersonalProfilePage(
+                viewModel = personalViewModel,
+                onNavigateBack = { navController.popBackStack() }
+            )
         }
+
 
         composable(
             route = Screen.AddEntry.route,
