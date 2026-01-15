@@ -15,19 +15,29 @@ val Quicksand = FontFamily(
 val Typography = Typography(
     bodyLarge = TextStyle(
         fontFamily = Quicksand,
-        fontWeight = FontWeight.Normal,
         fontSize = 16.sp,
-        lineHeight = 24.sp,
-        letterSpacing = 0.5.sp
+        lineHeight = 24.sp
+    ),
+
+    bodyMedium = TextStyle(
+        fontFamily = Quicksand,
+        fontSize = 14.sp
     ),
     titleLarge = TextStyle(
         fontFamily = Quicksand,
-        fontWeight = FontWeight.Normal,
-        fontSize = 22.sp
+        fontSize = 22.sp,
+        fontWeight = FontWeight.Normal
+    ),
+    titleMedium = TextStyle(
+        fontFamily = Quicksand,
+        fontSize = 18.sp
+    ),
+    labelLarge = TextStyle(
+        fontFamily = Quicksand,
+        fontSize = 14.sp
     ),
     labelSmall = TextStyle(
         fontFamily = Quicksand,
-        fontWeight = FontWeight.Normal,
         fontSize = 12.sp
     )
 )
