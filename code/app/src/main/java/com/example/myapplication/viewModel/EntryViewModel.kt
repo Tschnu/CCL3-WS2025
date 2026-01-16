@@ -13,12 +13,22 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.LocalDate
+import java.time.YearMonth
 import java.time.ZoneId
 
 class EntryViewModel(application: Application) : AndroidViewModel(application) {
 
     private val dao = DailyEntryDatabase.getDatabase(application).dailyEntryDao()
 
+    // ----------------------------
+    // Chart entries
+    // ----------------------------
+    private val _entriesForChart = MutableStateFlow<List<DailyEntryEntity>>(emptyList())
+    val entriesForChart: StateFlow<List<DailyEntryEntity>> = _entriesForChart
+
+    // ----------------------------
+    // Daily input state
+    // ----------------------------
     private val _painCategory = MutableStateFlow(0)
     val painCategory: StateFlow<Int> = _painCategory
 
@@ -36,15 +46,18 @@ class EntryViewModel(application: Application) : AndroidViewModel(application) {
 
     private var currentDate: Long = 0L
 
-    // REAL bloodflow (from DB) for calendar
+    // ----------------------------
+    // Calendar bloodflow
+    // ----------------------------
     private val _bloodflowByDate = MutableStateFlow<Map<Long, Int>>(emptyMap())
     val bloodflowByDate: StateFlow<Map<Long, Int>> = _bloodflowByDate
 
-    // PREDICTED bloodflow (virtual, NOT in DB) for calendar
     private val _predictedBloodflowByDate = MutableStateFlow<Map<Long, Int>>(emptyMap())
     val predictedBloodflowByDate: StateFlow<Map<Long, Int>> = _predictedBloodflowByDate
 
-    // NEW: Period statistics for StatisticsPage
+    // ----------------------------
+    // Period statistics
+    // ----------------------------
     private val _periodStats = MutableStateFlow(
         PeriodForecast.PeriodStats(
             avgCycleDays = 0,
@@ -55,22 +68,23 @@ class EntryViewModel(application: Application) : AndroidViewModel(application) {
     )
     val periodStats: StateFlow<PeriodForecast.PeriodStats> = _periodStats
 
-    // NEW: automatically recalc whenever DB changes
     init {
+        // Auto-recalculate stats whenever DB changes
         viewModelScope.launch {
             dao.observeAllEntries().collect { list ->
-                val localDateMap: Map<LocalDate, Int> = list.associate { entity ->
-                    val ld = Instant.ofEpochMilli(entity.date)
+                val localDateMap = list.associate { entity ->
+                    Instant.ofEpochMilli(entity.date)
                         .atZone(ZoneId.systemDefault())
-                        .toLocalDate()
-                    ld to entity.bloodflowCategory
+                        .toLocalDate() to entity.bloodflowCategory
                 }
-
                 _periodStats.value = PeriodForecast.calculatePeriodStats(localDateMap)
             }
         }
     }
 
+    // ----------------------------
+    // Journal list
+    // ----------------------------
     val journalEntries: StateFlow<List<DailyEntryEntity>> =
         dao.getJournalEntries()
             .stateIn(
@@ -79,12 +93,9 @@ class EntryViewModel(application: Application) : AndroidViewModel(application) {
                 initialValue = emptyList()
             )
 
-    fun setPainCategory(value: Int) { _painCategory.value = value }
-    fun setEnergyCategory(value: Int) { _energyCategory.value = value }
-    fun setMoodCategory(value: Int) { _moodCategory.value = value }
-    fun setJournalText(text: String) { _journalText.value = text }
-    fun setBloodflowCategory(value: Int) { _bloodflowCategory.value = value }
-
+    // ----------------------------
+    // All entries
+    // ----------------------------
     private val _allEntries = MutableStateFlow<List<DailyEntryEntity>>(emptyList())
     val allEntries: StateFlow<List<DailyEntryEntity>> = _allEntries
 
@@ -96,13 +107,24 @@ class EntryViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    // ----------------------------
+    // Mutators
+    // ----------------------------
+    fun setPainCategory(value: Int) { _painCategory.value = value }
+    fun setEnergyCategory(value: Int) { _energyCategory.value = value }
+    fun setMoodCategory(value: Int) { _moodCategory.value = value }
+    fun setJournalText(text: String) { _journalText.value = text }
+    fun setBloodflowCategory(value: Int) { _bloodflowCategory.value = value }
+
     fun deleteEntry(entry: DailyEntryEntity) {
         viewModelScope.launch {
             dao.deleteEntry(entry)
         }
     }
 
-
+    // ----------------------------
+    // Load single day
+    // ----------------------------
     fun loadEntryForDate(date: LocalDate) {
         currentDate = date
             .atStartOfDay(ZoneId.systemDefault())
@@ -122,58 +144,96 @@ class EntryViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    // ----------------------------
+    // Calendar prediction
+    // ----------------------------
     fun loadBloodflowForRange(start: Long, end: Long) {
         viewModelScope.launch {
             dao.getEntriesBetween(start, end).collect { list ->
-
-                // ✅ REAL calendar map (Long -> Int)
                 _bloodflowByDate.value = list.associate { it.date to it.bloodflowCategory }
 
-                val localDateMap: Map<LocalDate, Int> = list.associate { entity ->
-                    val ld = Instant.ofEpochMilli(entity.date)
+                val localDateMap = list.associate {
+                    Instant.ofEpochMilli(it.date)
                         .atZone(ZoneId.systemDefault())
-                        .toLocalDate()
-                    ld to entity.bloodflowCategory
+                        .toLocalDate() to it.bloodflowCategory
                 }
 
-                val rangeStartLocal = Instant.ofEpochMilli(start)
-                    .atZone(ZoneId.systemDefault())
-                    .toLocalDate()
-
-                val rangeEndLocal = Instant.ofEpochMilli(end)
-                    .atZone(ZoneId.systemDefault())
-                    .toLocalDate()
-
-                val predictedLocalDateMap = PeriodForecast.predictFutureFlowInRange(
+                val predicted = PeriodForecast.predictFutureFlowInRange(
                     entriesByDate = localDateMap,
-                    rangeStart = rangeStartLocal,
-                    rangeEnd = rangeEndLocal
+                    rangeStart = Instant.ofEpochMilli(start).atZone(ZoneId.systemDefault()).toLocalDate(),
+                    rangeEnd = Instant.ofEpochMilli(end).atZone(ZoneId.systemDefault()).toLocalDate()
                 )
 
-                _predictedBloodflowByDate.value = predictedLocalDateMap.mapKeys { (localDate, _) ->
-                    localDate
-                        .atStartOfDay(ZoneId.systemDefault())
-                        .toInstant()
-                        .toEpochMilli()
+                _predictedBloodflowByDate.value = predicted.mapKeys {
+                    it.key.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
                 }
             }
         }
     }
 
+    // ----------------------------
+    // Save entry
+    // ----------------------------
     fun saveEntry() {
         if (currentDate == 0L) return
 
-        val entry = DailyEntryEntity(
-            date = currentDate,
-            painCategory = painCategory.value,
-            energyCategory = energyCategory.value,
-            moodCategory = moodCategory.value,
-            bloodflowCategory = bloodflowCategory.value,
-            journalText = journalText.value
-        )
+        viewModelScope.launch {
+            dao.insertEntry(
+                DailyEntryEntity(
+                    date = currentDate,
+                    painCategory = painCategory.value,
+                    energyCategory = energyCategory.value,
+                    moodCategory = moodCategory.value,
+                    bloodflowCategory = bloodflowCategory.value,
+                    journalText = journalText.value
+                )
+            )
+        }
+    }
+
+    // ----------------------------
+    // EXISTING: last N days (KEEP)
+    // ----------------------------
+    fun loadEntriesForChart(daysBack: Int = 30) {
+        val end = LocalDate.now()
+            .atStartOfDay(ZoneId.systemDefault())
+            .toInstant()
+            .toEpochMilli()
+
+        val start = LocalDate.now()
+            .minusDays(daysBack.toLong())
+            .atStartOfDay(ZoneId.systemDefault())
+            .toInstant()
+            .toEpochMilli()
 
         viewModelScope.launch {
-            dao.insertEntry(entry)
+            dao.getEntriesBetween(start, end).collect {
+                _entriesForChart.value = it
+            }
+        }
+    }
+
+    // ----------------------------
+    // NEW: monthly chart loading
+    // ----------------------------
+    fun loadEntriesForMonth(month: YearMonth) {
+        val start = month
+            .atDay(1)
+            .atStartOfDay(ZoneId.systemDefault())
+            .toInstant()
+            .toEpochMilli()
+
+        val end = month
+            .atEndOfMonth()
+            .atTime(23, 59, 59)
+            .atZone(ZoneId.systemDefault())
+            .toInstant()
+            .toEpochMilli()
+
+        viewModelScope.launch {
+            dao.getEntriesBetween(start, end).collect {
+                _entriesForChart.value = it
+            }
         }
     }
 }
