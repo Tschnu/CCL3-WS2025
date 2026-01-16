@@ -9,6 +9,7 @@ import androidx.navigation.compose.composable
 import com.example.myapplication.db.profile.ProfileDatabase
 import com.example.myapplication.ui.navigation.Screen
 import com.example.myapplication.ui.screens.AddEntryPage
+import com.example.myapplication.ui.screens.JournalPage
 import com.example.myapplication.ui.screens.KalenderPage
 import com.example.myapplication.ui.screens.PersonalProfilePage
 import com.example.myapplication.ui.screens.StatisticsPage
@@ -25,8 +26,9 @@ fun AppNavHost(
         startDestination = Screen.Home.route,
         modifier = modifier
     ) {
-        composable(Screen.Home.route) { KalenderPage(navController)}
-        composable(Screen.StatisticsPage.route) { StatisticsPage() }
+        composable(Screen.Home.route) { KalenderPage(navController) }
+        composable(Screen.StatisticsPage.route) { StatisticsPage(navController) }
+        composable(Screen.Journal.route) { JournalPage(navController) }
         composable(Screen.Profile.route) {
             val personalViewModel: PersonalViewModel = viewModel()
             PersonalProfilePage(

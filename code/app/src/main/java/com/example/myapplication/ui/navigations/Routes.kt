@@ -14,7 +14,7 @@ sealed class Screen(
     data object StatisticsPage : Screen("statistics_page", "Statistics", R.drawable.magic_crystal_ball)
     data object Profile : Screen("profile", "Profile", R.drawable.crown)
     data object Home : Screen("home", "Home", R.drawable.spa_flower)
-
+    data object Journal : Screen("journal", "Journal", R.drawable.analyze_lines)
     data object AddEntry : Screen(
         route = "add_entry/{date}",
         label = "Add Entry",
