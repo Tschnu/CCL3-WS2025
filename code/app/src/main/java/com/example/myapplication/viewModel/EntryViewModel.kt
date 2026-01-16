@@ -236,4 +236,17 @@ class EntryViewModel(application: Application) : AndroidViewModel(application) {
             }
         }
     }
+
+    fun deleteCurrentEntry() {
+        if (currentDate == 0L) return
+
+        viewModelScope.launch {
+            dao.getEntryByDate(currentDate).collect { entry ->
+                entry?.let {
+                    dao.deleteEntry(it)
+                }
+            }
+        }
+    }
+
 }

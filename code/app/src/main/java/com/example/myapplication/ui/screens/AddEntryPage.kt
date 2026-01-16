@@ -19,6 +19,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.example.myapplication.R
 import com.example.myapplication.ui.theme.Brown
+import com.example.myapplication.ui.theme.RedDark
 import com.example.myapplication.ui.theme.Softsoftyellow
 import com.example.myapplication.viewModel.EntryViewModel
 import java.time.LocalDate
@@ -169,6 +170,27 @@ fun AddEntryPage(
         ) {
             Text(text = "Save", color = Softsoftyellow)
         }
+        if (journal.isNotBlank()
+            || bloodflow != 0
+            || pain != 0
+            || energy != 0
+            || mood != 0
+        ) {
+            Button(
+                onClick = {
+                    viewModel.deleteCurrentEntry()
+                    onNavigateBack()
+                },
+                colors = ButtonDefaults.buttonColors(
+                    contentColor = RedDark
+                ),
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+            ) {
+                Text(text = "Delete entry", color = Softsoftyellow)
+            }
+        }
+
     }
 }
 
