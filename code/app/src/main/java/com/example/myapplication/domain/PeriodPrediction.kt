@@ -53,8 +53,7 @@ object PeriodForecast {
             defaultCycleDays
         }
 
-        // Learn the user's last period "pattern":
-        // from lastStart forward until bleeding stops (0), collecting daily flow values (1..3)
+        // Learn the user's last period "pattern"
         val learnedPattern = buildList {
             var d = lastStart
             while (true) {
@@ -68,13 +67,11 @@ object PeriodForecast {
 
         val pattern = if (learnedPattern.isNotEmpty()) learnedPattern else fallbackPattern
 
-        // Now generate repeated future periods until rangeEnd
+        // Generate future periods
         val result = mutableMapOf<LocalDate, Int>()
-
         var nextStart = lastStart.plusDays(cycleDays.toLong())
 
         while (!nextStart.isAfter(rangeEnd)) {
-            // add pattern days
             pattern.forEachIndexed { i, flow ->
                 val day = nextStart.plusDays(i.toLong())
                 if (day.isAfter(today) && !day.isAfter(rangeEnd) && !day.isBefore(rangeStart)) {
@@ -85,5 +82,100 @@ object PeriodForecast {
         }
 
         return result
+    }
+
+    // ------------------------------------------------------------------------
+    // 🧮 PERIOD STATISTICS (used by StatisticsPage)
+    // ------------------------------------------------------------------------
+
+    data class PeriodStats(
+        val avgCycleDays: Int,     // ALWAYS has a value (defaults to 28)
+        val avgPeriodDays: Int,    // ALWAYS has a value (defaults to fallbackPattern.size)
+        val cyclesCount: Int,
+        val periodsCount: Int
+    )
+
+    /**
+     * Calculates average cycle length and average period length using ONLY the last 3 months.
+     *
+     * Rules:
+     * - period day = bloodflow > 0
+     * - period start = bleeding today AND not bleeding yesterday
+     *
+     * Defaults:
+     * - if cycle can't be computed (not enough starts) -> avgCycleDays = 28
+     * - if period length can't be computed -> avgPeriodDays = fallbackPattern.size (5)
+     */
+    fun calculatePeriodStats(
+        entriesByDate: Map<LocalDate, Int>,
+        today: LocalDate = LocalDate.now(),
+        monthsBack: Long = 3,
+        defaultCycleDays: Int = 28,
+        maxCycles: Int = 3
+    ): PeriodStats {
+
+        val windowStart = today.minusMonths(monthsBack)
+
+        // Only keep data from the last 3 months (up to today)
+        val filtered = entriesByDate.filterKeys { d ->
+            !d.isBefore(windowStart) && !d.isAfter(today)
+        }
+
+        if (filtered.isEmpty()) {
+            return PeriodStats(
+                avgCycleDays = defaultCycleDays,
+                avgPeriodDays = fallbackPattern.size,
+                cyclesCount = 0,
+                periodsCount = 0
+            )
+        }
+
+        val sortedDays = filtered.keys.sorted()
+
+        // Detect period starts
+        val periodStarts = mutableListOf<LocalDate>()
+        for (d in sortedDays) {
+            val bleedToday = (filtered[d] ?: 0) > 0
+            if (!bleedToday) continue
+            val bleedYesterday = (filtered[d.minusDays(1)] ?: 0) > 0
+            if (!bleedYesterday) periodStarts.add(d)
+        }
+
+        // Period lengths (consecutive bleeding days after each start)
+        val periodLengths = periodStarts.map { start ->
+            var len = 0
+            var day = start
+            while ((filtered[day] ?: 0) > 0) {
+                len++
+                day = day.plusDays(1)
+                if (len >= 15) break // safety cap
+            }
+            len
+        }.filter { it > 0 }
+
+        val avgPeriodDays = if (periodLengths.isNotEmpty()) {
+            periodLengths.average().roundToInt()
+        } else {
+            fallbackPattern.size
+        }
+
+        // Cycle lengths (difference between starts) - use last 3 cycles (or maxCycles)
+        val cycleDiffs = periodStarts
+            .zipWithNext { a, b -> ChronoUnit.DAYS.between(a, b).toInt() }
+            .filter { it in 15..60 }
+            .takeLast(maxCycles)
+
+        val avgCycleDays = if (cycleDiffs.isNotEmpty()) {
+            cycleDiffs.average().roundToInt()
+        } else {
+            defaultCycleDays
+        }
+
+        return PeriodStats(
+            avgCycleDays = avgCycleDays,
+            avgPeriodDays = avgPeriodDays,
+            cyclesCount = cycleDiffs.size,
+            periodsCount = periodStarts.size
+        )
     }
 }

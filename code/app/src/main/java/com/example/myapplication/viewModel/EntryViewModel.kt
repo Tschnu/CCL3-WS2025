@@ -42,6 +42,33 @@ class EntryViewModel(application: Application) : AndroidViewModel(application) {
     private val _predictedBloodflowByDate = MutableStateFlow<Map<Long, Int>>(emptyMap())
     val predictedBloodflowByDate: StateFlow<Map<Long, Int>> = _predictedBloodflowByDate
 
+    // NEW: Period statistics for StatisticsPage
+    private val _periodStats = MutableStateFlow(
+        PeriodForecast.PeriodStats(
+            avgCycleDays = 0,
+            avgPeriodDays = 0,
+            cyclesCount = 0,
+            periodsCount = 0
+        )
+    )
+    val periodStats: StateFlow<PeriodForecast.PeriodStats> = _periodStats
+
+    // NEW: automatically recalc whenever DB changes
+    init {
+        viewModelScope.launch {
+            dao.observeAllEntries().collect { list ->
+                val localDateMap: Map<LocalDate, Int> = list.associate { entity ->
+                    val ld = Instant.ofEpochMilli(entity.date)
+                        .atZone(ZoneId.systemDefault())
+                        .toLocalDate()
+                    ld to entity.bloodflowCategory
+                }
+
+                _periodStats.value = PeriodForecast.calculatePeriodStats(localDateMap)
+            }
+        }
+    }
+
     fun setPainCategory(value: Int) { _painCategory.value = value }
     fun setEnergyCategory(value: Int) { _energyCategory.value = value }
     fun setMoodCategory(value: Int) { _moodCategory.value = value }
@@ -62,7 +89,6 @@ class EntryViewModel(application: Application) : AndroidViewModel(application) {
                     _moodCategory.value = it.moodCategory
                     _bloodflowCategory.value = it.bloodflowCategory
                     _journalText.value = it.journalText
-
                 }
             }
         }

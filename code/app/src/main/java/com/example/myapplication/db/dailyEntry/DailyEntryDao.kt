@@ -29,4 +29,8 @@ interface DailyEntryDao {
     @Query("SELECT * FROM dailyEntry WHERE date BETWEEN :startDate AND :endDate")
     fun getEntriesBetween(startDate: Long, endDate: Long): Flow<List<DailyEntryEntity>>
 
+    @Query("SELECT * FROM dailyEntry ORDER BY date ASC")
+    fun observeAllEntries(): kotlinx.coroutines.flow.Flow<List<DailyEntryEntity>>
+
+
 }
