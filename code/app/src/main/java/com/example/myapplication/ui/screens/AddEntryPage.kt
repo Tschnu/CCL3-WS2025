@@ -1,3 +1,4 @@
+// FILE: AddEntryPage.kt
 package com.example.myapplication.ui.screens
 
 import androidx.compose.foundation.Image
@@ -18,12 +19,24 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.example.myapplication.R
+import com.example.myapplication.ui.theme.brown
 import com.example.myapplication.viewModel.EntryViewModel
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 
 @Composable
-fun AddEntryHeader(onBack: () -> Unit) {
+fun AddEntryHeader(
+    date: LocalDate,
+    onBack: () -> Unit
+) {
+    val formattedDate = remember(date) {
+        date.format(
+            DateTimeFormatter.ofPattern("dd MMM yyyy", Locale.getDefault())
+        )
+    }
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -37,15 +50,24 @@ fun AddEntryHeader(onBack: () -> Unit) {
                 .size(28.dp)
                 .clickable { onBack() }
         )
+
+        Spacer(modifier = Modifier.width(12.dp))
+
+        Text(
+            text = "Add entry for $formattedDate",
+            style = MaterialTheme.typography.titleLarge
+        )
     }
 }
 
+
 @Composable
 fun AddEntryPage(
-    date: String,
+    date: String, // keep your existing navigation parameter
     viewModel: EntryViewModel,
     onNavigateBack: () -> Unit
 ) {
+    // Parse the nav date once
     val localDate = remember(date) { LocalDate.parse(date) }
 
     LaunchedEffect(localDate) {
@@ -65,10 +87,11 @@ fun AddEntryPage(
             .padding(24.dp),
         verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
-        AddEntryHeader(onNavigateBack)
-
-        Text("Add Entry", style = MaterialTheme.typography.titleMedium)
-        Text(date, style = MaterialTheme.typography.bodyMedium)
+        // ✅ Header now shows the date next to the arrow
+        AddEntryHeader(
+            date = localDate,
+            onBack = onNavigateBack
+        )
 
         SectionTitle("Blood Flow")
         ValueImageRow(
@@ -121,7 +144,6 @@ fun AddEntryPage(
             onSelect = viewModel::setMoodCategory
         )
 
-
         SectionTitle("Journal")
         OutlinedTextField(
             value = journal,
@@ -132,7 +154,6 @@ fun AddEntryPage(
             placeholder = { Text("How do you feel today?") },
             shape = RoundedCornerShape(12.dp)
         )
-
 
         Button(
             onClick = {
@@ -172,8 +193,8 @@ fun ValueImageRow(
                         shape = RoundedCornerShape(8.dp)
                     )
                     .border(
-                        width = if (value == selectedValue) 2.dp else 0.dp,
-                        color = Color.Black,
+                        width = if (value == selectedValue) 2.dp else 1.dp,
+                        color = brown,
                         shape = RoundedCornerShape(8.dp)
                     )
                     .clickable { onSelect(value) }
@@ -217,4 +238,3 @@ fun MoodBar(
         }
     }
 }
-
