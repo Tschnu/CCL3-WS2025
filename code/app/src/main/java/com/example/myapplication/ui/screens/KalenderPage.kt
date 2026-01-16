@@ -112,7 +112,7 @@ fun CalendarHeader() {
             contentDescription = "Quiet Bloom Logo",
             modifier = Modifier
                 .height(80.dp)
-                .padding(end = 140.dp)   // 👈 moves it left
+                .padding(end = 140.dp)
         )
 
 

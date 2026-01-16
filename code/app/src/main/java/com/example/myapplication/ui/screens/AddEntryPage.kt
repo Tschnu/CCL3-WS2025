@@ -19,7 +19,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.example.myapplication.R
-import com.example.myapplication.ui.theme.brown
+import com.example.myapplication.ui.theme.Brown
 import com.example.myapplication.viewModel.EntryViewModel
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -183,9 +183,7 @@ fun ValueImageRow(
 ) {
     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
         items.forEach { (imageRes, value) ->
-            Image(
-                painter = painterResource(imageRes),
-                contentDescription = null,
+            Box(
                 modifier = Modifier
                     .size(56.dp)
                     .background(
@@ -193,12 +191,19 @@ fun ValueImageRow(
                         shape = RoundedCornerShape(8.dp)
                     )
                     .border(
-                        width = if (value == selectedValue) 2.dp else 1.dp,
-                        color = brown,
+                        width = if (value == selectedValue) 2.dp else 2.dp,
+                        color = if (value == selectedValue) Brown else Color.LightGray,
                         shape = RoundedCornerShape(8.dp)
                     )
-                    .clickable { onSelect(value) }
-            )
+                    .clickable { onSelect(value) },
+                contentAlignment = Alignment.Center
+            ) {
+                Image(
+                    painter = painterResource(imageRes),
+                    contentDescription = null,
+                    modifier = Modifier.size(32.dp)
+                )
+            }
         }
     }
 }

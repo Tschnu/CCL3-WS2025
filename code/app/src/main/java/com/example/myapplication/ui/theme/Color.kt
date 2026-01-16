@@ -8,7 +8,7 @@ val GreenLight = Color(0xFF7E8406)
 
 val BrownDark = Color(0xFF3D2B1F)
 val BrownLight = Color(0xFF6F4E37)
-val brown = Color(0x3D2B1F)
+val Brown = Color(0xFF3D2B1F)
 
 val RedDark = Color(0xFF630602)
 val RedLight = Color(0xFFE45853)
