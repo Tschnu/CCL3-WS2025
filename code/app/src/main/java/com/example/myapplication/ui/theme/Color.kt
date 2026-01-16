@@ -16,6 +16,6 @@ val BackgroundRed = Color(0xFFFFFFFF)
 
 val YellowStrong = Color(0xFFDEBE00)
 val YellowSoft = Color(0xFFEBD365)
-val softsoftyellow = Color(0xFFFBF3D3)
+val Softsoftyellow = Color(0xFFFBF3D3)
 
 val Cream = Color(0xFFF5EFD5)

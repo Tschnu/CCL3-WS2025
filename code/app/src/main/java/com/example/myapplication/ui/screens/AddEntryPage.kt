@@ -1,4 +1,3 @@
-// FILE: AddEntryPage.kt
 package com.example.myapplication.ui.screens
 
 import androidx.compose.foundation.Image
@@ -63,11 +62,10 @@ fun AddEntryHeader(
 
 @Composable
 fun AddEntryPage(
-    date: String, // keep your existing navigation parameter
+    date: String,
     viewModel: EntryViewModel,
     onNavigateBack: () -> Unit
 ) {
-    // Parse the nav date once
     val localDate = remember(date) { LocalDate.parse(date) }
 
     LaunchedEffect(localDate) {
@@ -87,7 +85,6 @@ fun AddEntryPage(
             .padding(24.dp),
         verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
-        // ✅ Header now shows the date next to the arrow
         AddEntryHeader(
             date = localDate,
             onBack = onNavigateBack
@@ -150,8 +147,14 @@ fun AddEntryPage(
             onValueChange = viewModel::setJournalText,
             modifier = Modifier
                 .fillMaxWidth()
+                .border(
+                    width =2.dp,
+                    color = Brown,
+                    shape = RoundedCornerShape(12.dp)
+                )
                 .height(140.dp),
-            placeholder = { Text("How do you feel today?") },
+
+            placeholder = { Text("How do you feel today?")},
             shape = RoundedCornerShape(12.dp)
         )
 
@@ -201,7 +204,7 @@ fun ValueImageRow(
                 Image(
                     painter = painterResource(imageRes),
                     contentDescription = null,
-                    modifier = Modifier.size(32.dp)
+                    modifier = Modifier.size(50.dp)
                 )
             }
         }
@@ -218,7 +221,7 @@ fun MoodBar(
         modifier = Modifier
             .fillMaxWidth()
             .background(Color.White, RoundedCornerShape(12.dp))
-            .border(1.dp, Color.Black, RoundedCornerShape(12.dp))
+            .border(2.dp, Brown, RoundedCornerShape(12.dp))
             .padding(vertical = 8.dp),
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically

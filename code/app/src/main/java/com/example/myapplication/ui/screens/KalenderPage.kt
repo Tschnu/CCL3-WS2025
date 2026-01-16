@@ -27,6 +27,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.myapplication.R
 import com.example.myapplication.ui.navigation.Screen
+import com.example.myapplication.ui.theme.Brown
+import com.example.myapplication.ui.theme.Softsoftyellow
+import com.example.myapplication.ui.theme.YellowStrong
 import com.example.myapplication.viewModel.EntryViewModel
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -73,7 +76,6 @@ fun KalenderPage(navController: NavController) {
     ) {
         CalendarHeader()
 
-        // ✅ Fixed weekday header once (not per month)
         WeekDayHeader()
 
         Spacer(modifier = Modifier.height(10.dp))
@@ -99,7 +101,6 @@ fun KalenderPage(navController: NavController) {
 
 @Composable
 fun CalendarHeader() {
-    val brown = Color(0xFF3D2B1F)
 
     Column(
         modifier = Modifier
@@ -117,7 +118,7 @@ fun CalendarHeader() {
 
 
         Divider(
-            color = brown,
+            color = Brown,
             thickness = 2.dp,
             modifier = Modifier
                 .padding(top = 4.dp)
@@ -125,7 +126,7 @@ fun CalendarHeader() {
         )
 
         Divider(
-            color = brown,
+            color = Brown,
             thickness = 2.dp,
             modifier = Modifier
                 .padding(top = 4.dp)
@@ -218,7 +219,6 @@ fun MonthCalendar(
 
 @Composable
 fun WeekDayHeader() {
-    val brown = Color(0xFF3D2B1F)
 
     val days = listOf(
         DayOfWeek.MONDAY,
@@ -242,7 +242,7 @@ fun WeekDayHeader() {
                 modifier = Modifier.weight(1f),
                 textAlign = TextAlign.Center,
                 style = MaterialTheme.typography.titleMedium,
-                color = brown
+                color = Brown
             )
         }
     }
@@ -256,8 +256,6 @@ fun RowScope.DayCell(
     bloodflowMap: Map<Long, Int>,
     predictedMap: Map<Long, Int>
 ) {
-    val brown = Color(0xFF3D2B1F)
-    val yellow = Color(0xFFFBF3D3)
     val futureText = Color(0x993D2B1F)
     val cellShape = RoundedCornerShape(8.dp)
 
@@ -280,10 +278,10 @@ fun RowScope.DayCell(
 
     val hasRealPeriod = realFlow != null && realFlow > 0
 
-    val fillColor = if (!isFuture) yellow else Color.Transparent
+    val fillColor = if (!isFuture) Softsoftyellow else Color.Transparent
 
     val futureOutline = if (isFuture) {
-        Modifier.border(width = 2.dp, color = yellow, shape = cellShape)
+        Modifier.border(width = 2.dp, color = Softsoftyellow, shape = cellShape)
     } else Modifier
 
     Box(
@@ -327,7 +325,7 @@ fun RowScope.DayCell(
         Text(
             text = day.toString(),
             style = MaterialTheme.typography.bodyLarge,
-            color = if (isFuture) futureText else brown
+            color = if (isFuture) futureText else Brown
         )
     }
 }
