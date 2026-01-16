@@ -22,6 +22,7 @@ import androidx.navigation.NavController
 import com.example.myapplication.R
 import com.example.myapplication.ui.navigation.Screen
 import com.example.myapplication.ui.theme.Brown
+import com.example.myapplication.ui.theme.Softsoftyellow
 import com.example.myapplication.viewModel.EntryViewModel
 
 @Composable
@@ -73,6 +74,7 @@ fun StatisticsPage(navController: NavController) {
                         Text(
                             text = "Journal Entries",
                             style = MaterialTheme.typography.titleLarge,
+                            color = Softsoftyellow,
                             fontWeight = FontWeight.SemiBold,
                             textAlign = TextAlign.Center
                         )

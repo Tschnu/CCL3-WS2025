@@ -19,6 +19,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.example.myapplication.R
 import com.example.myapplication.ui.theme.Brown
+import com.example.myapplication.ui.theme.Softsoftyellow
 import com.example.myapplication.viewModel.EntryViewModel
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -163,9 +164,10 @@ fun AddEntryPage(
                 viewModel.saveEntry()
                 onNavigateBack()
             },
-            modifier = Modifier.align(Alignment.CenterHorizontally)
+            modifier = Modifier
+                .align(Alignment.CenterHorizontally)
         ) {
-            Text("Save")
+            Text(text = "Save", color = Softsoftyellow)
         }
     }
 }
