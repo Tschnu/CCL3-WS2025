@@ -7,7 +7,9 @@ import com.example.myapplication.db.dailyEntry.DailyEntryDatabase
 import com.example.myapplication.db.dailyEntry.DailyEntryEntity
 import com.example.myapplication.domain.PeriodForecast
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.LocalDate
@@ -69,11 +71,37 @@ class EntryViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    val journalEntries: StateFlow<List<DailyEntryEntity>> =
+        dao.getJournalEntries()
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5_000),
+                initialValue = emptyList()
+            )
+
     fun setPainCategory(value: Int) { _painCategory.value = value }
     fun setEnergyCategory(value: Int) { _energyCategory.value = value }
     fun setMoodCategory(value: Int) { _moodCategory.value = value }
     fun setJournalText(text: String) { _journalText.value = text }
     fun setBloodflowCategory(value: Int) { _bloodflowCategory.value = value }
+
+    private val _allEntries = MutableStateFlow<List<DailyEntryEntity>>(emptyList())
+    val allEntries: StateFlow<List<DailyEntryEntity>> = _allEntries
+
+    init {
+        viewModelScope.launch {
+            dao.getAllEntries().collect { list ->
+                _allEntries.value = list
+            }
+        }
+    }
+
+    fun deleteEntry(entry: DailyEntryEntity) {
+        viewModelScope.launch {
+            dao.deleteEntry(entry)
+        }
+    }
+
 
     fun loadEntryForDate(date: LocalDate) {
         currentDate = date

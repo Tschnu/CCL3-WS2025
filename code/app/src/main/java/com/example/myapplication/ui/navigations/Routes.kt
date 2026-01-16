@@ -29,6 +29,7 @@ sealed class Screen(
         fun createRoute(date: String) = "add_entry/$date"
     }
 
+
 }
 
 val bottomTabs = listOf(

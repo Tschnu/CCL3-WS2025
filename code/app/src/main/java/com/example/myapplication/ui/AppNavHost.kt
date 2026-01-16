@@ -28,7 +28,6 @@ fun AppNavHost(
     ) {
         composable(Screen.Home.route) { KalenderPage(navController) }
         composable(Screen.StatisticsPage.route) { StatisticsPage(navController) }
-        composable(Screen.Journal.route) { JournalPage(navController) }
         composable(Screen.Profile.route) {
             val personalViewModel: PersonalViewModel = viewModel()
             PersonalProfilePage(
@@ -52,6 +51,13 @@ fun AppNavHost(
                 date = date,
                 viewModel = entryViewModel,
                 onNavigateBack = { navController.popBackStack() }  // Add this line
+            )
+        }
+
+        composable(Screen.Journal.route) {
+            JournalPage(
+                navController = navController,
+                viewModel = viewModel()
             )
         }
 

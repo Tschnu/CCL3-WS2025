@@ -33,4 +33,6 @@ interface DailyEntryDao {
     fun observeAllEntries(): kotlinx.coroutines.flow.Flow<List<DailyEntryEntity>>
 
 
+    @Query("SELECT * FROM dailyEntry Where journalText IS NOT NULL AND journalText != '' ORDER BY date DESC")
+    fun getJournalEntries(): Flow<List<DailyEntryEntity>>
 }
