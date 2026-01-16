@@ -24,12 +24,12 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.myapplication.R
 import com.example.myapplication.db.dailyEntry.DailyEntryEntity
+import com.example.myapplication.domain.PeriodForecast
 import com.example.myapplication.ui.navigation.Screen
 import com.example.myapplication.ui.theme.Brown
 import com.example.myapplication.ui.theme.Softsoftyellow
 import com.example.myapplication.viewModel.EntryViewModel
 import java.time.Instant
-import java.time.LocalDate
 import java.time.YearMonth
 import java.time.ZoneId
 
@@ -40,16 +40,25 @@ fun StatisticsPage(navController: NavController) {
 
     var selectedMonth by remember { mutableStateOf(YearMonth.now()) }
 
+    // load REAL entries for selected month + set base month for predictions
     LaunchedEffect(selectedMonth) {
         entryViewModel.loadEntriesForMonth(selectedMonth)
+        entryViewModel.setPredictionBaseMonth(selectedMonth)
     }
 
     val chartEntries = entryViewModel.entriesForChart.collectAsState().value
+    val predicted = entryViewModel.predictedMonths.collectAsState().value
 
     var showBloodflow by remember { mutableStateOf(true) }
     var showPain by remember { mutableStateOf(true) }
     var showMood by remember { mutableStateOf(true) }
     var showEnergy by remember { mutableStateOf(true) }
+
+    // prediction month index: 0 = next month, 1 = +2, 2 = +3
+    var predIndex by remember { mutableStateOf(0) }
+    LaunchedEffect(selectedMonth) { predIndex = 0 } // reset when user changes base month
+
+    val predMonth = predicted.getOrNull(predIndex)
 
     Box(
         modifier = Modifier
@@ -133,7 +142,7 @@ fun StatisticsPage(navController: NavController) {
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // ---- MONTH SELECTOR (SOFT & PRETTY) ----
+                // ---- MONTH SELECTOR (REAL) ----
                 Surface(
                     shape = RoundedCornerShape(20.dp),
                     color = Brown.copy(alpha = 0.1f)
@@ -171,7 +180,7 @@ fun StatisticsPage(navController: NavController) {
 
                 Spacer(modifier = Modifier.height(20.dp))
 
-                // ---- FILTER CHIPS ----
+                // ---- FILTER CHIPS (for BOTH charts) ----
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -184,10 +193,44 @@ fun StatisticsPage(navController: NavController) {
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // ---- CHART ----
+                // ---- REAL CHART (selected month) ----
                 DailyMetricsChart(
                     entries = chartEntries,
                     month = selectedMonth,
+                    showBloodflow = showBloodflow,
+                    showPain = showPain,
+                    showMood = showMood,
+                    showEnergy = showEnergy
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+                HorizontalDivider(color = Brown, thickness = 2.dp)
+                Spacer(modifier = Modifier.height(10.dp))
+
+                // ---- PREDICTIONS TITLE ----
+                Text(
+                    text = "Prediction",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Brown,
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // ---- PREDICTION MONTH SWITCHER (0/1/2) ----
+                PredictionMonthSelector(
+                    predictedMonths = predicted,
+                    predIndex = predIndex,
+                    onPrev = { if (predIndex > 0) predIndex-- },
+                    onNext = { if (predIndex < 2) predIndex++ }
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // ---- PREDICTED CHART (ONE MONTH AT A TIME) ----
+                PredictedMonthChart(
+                    prediction = predMonth,
                     showBloodflow = showBloodflow,
                     showPain = showPain,
                     showMood = showMood,
@@ -241,7 +284,7 @@ private fun LineToggleChip(
     }
 }
 
-/* ----------------- CHART ----------------- */
+/* ----------------- REAL CHART (MONTH) ----------------- */
 
 @Composable
 private fun DailyMetricsChart(
@@ -265,6 +308,108 @@ private fun DailyMetricsChart(
     val energy = days.map { (byDate[it]?.energyCategory ?: 0).toFloat() }
     val flow = days.map { (byDate[it]?.bloodflowCategory ?: 0).toFloat() }
 
+    MultiAxisLineChart(
+        valuesPain = pain,
+        valuesMood = mood,
+        valuesEnergy = energy,
+        valuesFlow = flow,
+        showBloodflow = showBloodflow,
+        showPain = showPain,
+        showMood = showMood,
+        showEnergy = showEnergy
+    )
+}
+
+/* ----------------- PREDICTION MONTH SELECTOR ----------------- */
+
+@Composable
+private fun PredictionMonthSelector(
+    predictedMonths: List<PeriodForecast.MonthlyPrediction>,
+    predIndex: Int,
+    onPrev: () -> Unit,
+    onNext: () -> Unit
+) {
+    val title = predictedMonths.getOrNull(predIndex)?.let { ym ->
+        ym.month.month.name.lowercase().replaceFirstChar { it.uppercase() } + " ${ym.month.year}"
+    } ?: "Loading..."
+
+    Surface(
+        shape = RoundedCornerShape(20.dp),
+        color = Brown.copy(alpha = 0.1f)
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "‹",
+                color = if (predIndex == 0) Brown.copy(alpha = 0.3f) else Brown,
+                modifier = Modifier
+                    .padding(horizontal = 8.dp)
+                    .clickable(enabled = predIndex != 0) { onPrev() }
+            )
+
+            Text(
+                text = title,
+                fontWeight = FontWeight.SemiBold,
+                color = Brown
+            )
+
+            Text(
+                text = "›",
+                color = if (predIndex == 2) Brown.copy(alpha = 0.3f) else Brown,
+                modifier = Modifier
+                    .padding(horizontal = 8.dp)
+                    .clickable(enabled = predIndex != 2) { onNext() }
+            )
+        }
+    }
+}
+
+/* ----------------- PREDICTED CHART (ONE MONTH) ----------------- */
+
+@Composable
+private fun PredictedMonthChart(
+    prediction: PeriodForecast.MonthlyPrediction?,
+    showBloodflow: Boolean,
+    showPain: Boolean,
+    showMood: Boolean,
+    showEnergy: Boolean
+) {
+    // if still loading, show an empty chart (no crash)
+    val pain = prediction?.painByDay ?: List(30) { 0f }
+    val mood = prediction?.moodByDay ?: List(30) { 0f }
+    val energy = prediction?.energyByDay ?: List(30) { 0f }
+    val flow = prediction?.bloodflowByDay ?: List(30) { 0f }
+
+    MultiAxisLineChart(
+        valuesPain = pain,
+        valuesMood = mood,
+        valuesEnergy = energy,
+        valuesFlow = flow,
+        showBloodflow = showBloodflow,
+        showPain = showPain,
+        showMood = showMood,
+        showEnergy = showEnergy
+    )
+}
+
+/* ----------------- SHARED CANVAS ----------------- */
+
+@Composable
+private fun MultiAxisLineChart(
+    valuesPain: List<Float>,
+    valuesMood: List<Float>,
+    valuesEnergy: List<Float>,
+    valuesFlow: List<Float>,
+    showBloodflow: Boolean,
+    showPain: Boolean,
+    showMood: Boolean,
+    showEnergy: Boolean
+) {
+    val count = listOf(valuesPain.size, valuesMood.size, valuesEnergy.size, valuesFlow.size).minOrNull() ?: 0
+    if (count <= 1) return
+
     Canvas(
         modifier = Modifier
             .fillMaxWidth()
@@ -275,9 +420,9 @@ private fun DailyMetricsChart(
         val top = 20f
         val bottom = size.height - 30f
 
-        fun x(i: Int) = left + (right - left) * i / (days.size - 1)
-        fun yLeft(v: Float) = bottom - (v / 5f) * (bottom - top)
-        fun yRight(v: Float) = bottom - (v / 3f) * (bottom - top)
+        fun x(i: Int) = left + (right - left) * i / (count - 1)
+        fun yLeft(v: Float) = bottom - (v.coerceIn(0f, 5f) / 5f) * (bottom - top)
+        fun yRight(v: Float) = bottom - (v.coerceIn(0f, 3f) / 3f) * (bottom - top)
 
         // axes
         drawLine(Color.Black, Offset(left, top), Offset(left, bottom), 3f)
@@ -286,15 +431,15 @@ private fun DailyMetricsChart(
 
         fun drawSeries(values: List<Float>, color: Color, rightAxis: Boolean) {
             val path = Path()
-            values.forEachIndexed { i, v ->
+            for (i in 0 until count) {
                 val px = x(i)
-                val py = if (rightAxis) yRight(v) else yLeft(v)
+                val py = if (rightAxis) yRight(values[i]) else yLeft(values[i])
                 if (i == 0) path.moveTo(px, py) else path.lineTo(px, py)
             }
             drawPath(path, color, style = Stroke(5f, cap = StrokeCap.Round))
         }
 
-        // Y-axis labels
+        // left axis labels (0..5)
         for (i in 0..5) {
             val y = yLeft(i.toFloat())
             drawLine(Color.Black, Offset(left - 6f, y), Offset(left, y), 2f)
@@ -309,6 +454,7 @@ private fun DailyMetricsChart(
             )
         }
 
+        // right axis labels (0..3)
         for (i in 0..3) {
             val y = yRight(i.toFloat())
             drawLine(Color.Black, Offset(right, y), Offset(right + 6f, y), 2f)
@@ -323,9 +469,9 @@ private fun DailyMetricsChart(
             )
         }
 
-        if (showBloodflow) drawSeries(flow, Color.Red, true)
-        if (showPain) drawSeries(pain, Color.Yellow, false)
-        if (showMood) drawSeries(mood, Color.Blue, false)
-        if (showEnergy) drawSeries(energy, Color.Green, false)
+        if (showBloodflow) drawSeries(valuesFlow, Color.Red, true)
+        if (showPain) drawSeries(valuesPain, Color.Yellow, false)
+        if (showMood) drawSeries(valuesMood, Color.Blue, false)
+        if (showEnergy) drawSeries(valuesEnergy, Color.Green, false)
     }
 }

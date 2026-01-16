@@ -21,10 +21,36 @@ class EntryViewModel(application: Application) : AndroidViewModel(application) {
     private val dao = DailyEntryDatabase.getDatabase(application).dailyEntryDao()
 
     // ----------------------------
-    // Chart entries
+    // Chart entries (REAL)
     // ----------------------------
     private val _entriesForChart = MutableStateFlow<List<DailyEntryEntity>>(emptyList())
     val entriesForChart: StateFlow<List<DailyEntryEntity>> = _entriesForChart
+
+    // ----------------------------
+    // PREDICTIONS (NEXT 3 MONTHS)
+    // ----------------------------
+    private val _predictionBaseMonth = MutableStateFlow(YearMonth.now())
+
+    private val _predictedMonths =
+        MutableStateFlow<List<PeriodForecast.MonthlyPrediction>>(emptyList())
+    val predictedMonths: StateFlow<List<PeriodForecast.MonthlyPrediction>> = _predictedMonths
+
+    /**
+     * Call this from StatisticsPage whenever the user changes the month.
+     * Predictions are always: next 3 months, based on the last 3 months of data (ending at baseMonth).
+     */
+    fun setPredictionBaseMonth(baseMonth: YearMonth) {
+        _predictionBaseMonth.value = baseMonth
+        recalcPredictions()
+    }
+
+    private fun recalcPredictions() {
+        _predictedMonths.value = PeriodForecast.predictNextMonthsFromLast3Months(
+            allEntries = _allEntries.value,
+            baseMonth = _predictionBaseMonth.value,
+            monthsAhead = 3
+        )
+    }
 
     // ----------------------------
     // Daily input state
@@ -103,6 +129,9 @@ class EntryViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             dao.getAllEntries().collect { list ->
                 _allEntries.value = list
+
+                // 🔄 whenever DB changes, refresh predictions automatically
+                recalcPredictions()
             }
         }
     }
@@ -214,7 +243,7 @@ class EntryViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     // ----------------------------
-    // NEW: monthly chart loading
+    // Monthly chart loading (REAL)
     // ----------------------------
     fun loadEntriesForMonth(month: YearMonth) {
         val start = month

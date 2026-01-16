@@ -1,6 +1,10 @@
 package com.example.myapplication.domain
 
+import com.example.myapplication.db.dailyEntry.DailyEntryEntity
+import java.time.Instant
 import java.time.LocalDate
+import java.time.YearMonth
+import java.time.ZoneId
 import java.time.temporal.ChronoUnit
 import kotlin.math.roundToInt
 
@@ -11,7 +15,7 @@ object PeriodForecast {
 
     /**
      * entriesByDate: LocalDate -> bloodflow (0 none, 1 light, 2 medium, 3 heavy)
-     * Predicts bleeding days only within rangeStart.rangeEnd], and only after "today".
+     * Predicts bleeding days only within rangeStart..rangeEnd], and only after "today".
      *
      * IMPORTANT: returns EMPTY map if user has never logged a period start.
      */
@@ -97,14 +101,6 @@ object PeriodForecast {
 
     /**
      * Calculates average cycle length and average period length using ONLY the last 3 months.
-     *
-     * Rules:
-     * - period day = bloodflow > 0
-     * - period start = bleeding today AND not bleeding yesterday
-     *
-     * Defaults:
-     * - if cycle can't be computed (not enough starts) -> avgCycleDays = 28
-     * - if period length can't be computed -> avgPeriodDays = fallbackPattern.size (5)
      */
     fun calculatePeriodStats(
         entriesByDate: Map<LocalDate, Int>,
@@ -141,14 +137,14 @@ object PeriodForecast {
             if (!bleedYesterday) periodStarts.add(d)
         }
 
-        // Period lengths (consecutive bleeding days after each start)
+        // Period lengths
         val periodLengths = periodStarts.map { start ->
             var len = 0
             var day = start
             while ((filtered[day] ?: 0) > 0) {
                 len++
                 day = day.plusDays(1)
-                if (len >= 15) break // safety cap
+                if (len >= 15) break
             }
             len
         }.filter { it > 0 }
@@ -159,7 +155,7 @@ object PeriodForecast {
             fallbackPattern.size
         }
 
-        // Cycle lengths (difference between starts) - use last 3 cycles (or maxCycles)
+        // Cycle diffs
         val cycleDiffs = periodStarts
             .zipWithNext { a, b -> ChronoUnit.DAYS.between(a, b).toInt() }
             .filter { it in 15..60 }
@@ -177,5 +173,64 @@ object PeriodForecast {
             cyclesCount = cycleDiffs.size,
             periodsCount = periodStarts.size
         )
+    }
+
+    // ------------------------------------------------------------------------
+    // 🔮 PREDICTIONS: NEXT 3 MONTHS (daily values) from last 3 months averages
+    // ------------------------------------------------------------------------
+
+    data class MonthlyPrediction(
+        val month: YearMonth,
+        val painByDay: List<Float>,
+        val moodByDay: List<Float>,
+        val energyByDay: List<Float>,
+        val bloodflowByDay: List<Float>
+    )
+
+    /**
+     * Predict next [monthsAhead] months (default 3).
+     * For each day-of-month index, we average values from the last 3 months:
+     * baseMonth, baseMonth-1, baseMonth-2.
+     * Missing -> 0.
+     */
+    fun predictNextMonthsFromLast3Months(
+        allEntries: List<DailyEntryEntity>,
+        baseMonth: YearMonth,
+        monthsAhead: Int = 3,
+        zoneId: ZoneId = ZoneId.systemDefault()
+    ): List<MonthlyPrediction> {
+
+        val historyMonths = setOf(
+            baseMonth,
+            baseMonth.minusMonths(1),
+            baseMonth.minusMonths(2)
+        )
+
+        val historyEntries = allEntries.filter { e ->
+            val d = Instant.ofEpochMilli(e.date).atZone(zoneId).toLocalDate()
+            YearMonth.from(d) in historyMonths
+        }
+
+        fun avgForDayIndex(dayIndex: Int, selector: (DailyEntryEntity) -> Int): Float {
+            val values = historyEntries.mapNotNull { e ->
+                val d = Instant.ofEpochMilli(e.date).atZone(zoneId).toLocalDate()
+                val idx = d.dayOfMonth - 1
+                if (idx == dayIndex) selector(e) else null
+            }
+            return if (values.isEmpty()) 0f else values.average().toFloat()
+        }
+
+        return (1..monthsAhead).map { offset ->
+            val month = baseMonth.plusMonths(offset.toLong())
+            val daysInMonth = month.lengthOfMonth()
+
+            MonthlyPrediction(
+                month = month,
+                painByDay = List(daysInMonth) { i -> avgForDayIndex(i) { it.painCategory } },
+                moodByDay = List(daysInMonth) { i -> avgForDayIndex(i) { it.moodCategory } },
+                energyByDay = List(daysInMonth) { i -> avgForDayIndex(i) { it.energyCategory } },
+                bloodflowByDay = List(daysInMonth) { i -> avgForDayIndex(i) { it.bloodflowCategory } }
+            )
+        }
     }
 }
