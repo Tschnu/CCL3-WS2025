@@ -26,8 +26,12 @@ import com.example.myapplication.R
 import com.example.myapplication.db.dailyEntry.DailyEntryEntity
 import com.example.myapplication.domain.PeriodForecast
 import com.example.myapplication.ui.navigation.Screen
+import com.example.myapplication.ui.theme.BlueDark
 import com.example.myapplication.ui.theme.Brown
+import com.example.myapplication.ui.theme.GreenDark
+import com.example.myapplication.ui.theme.RedDark
 import com.example.myapplication.ui.theme.Softsoftyellow
+import com.example.myapplication.ui.theme.YellowDark
 import com.example.myapplication.viewModel.EntryViewModel
 import java.time.Instant
 import java.time.YearMonth
@@ -197,10 +201,10 @@ fun StatisticsPage(navController: NavController) {
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    LineToggleChip("Blood", Color.Red, showBloodflow) { showBloodflow = !showBloodflow }
-                    LineToggleChip("Pain", Color.Yellow, showPain) { showPain = !showPain }
-                    LineToggleChip("Mood", Color.Blue, showMood) { showMood = !showMood }
-                    LineToggleChip("Energy", Color.Green, showEnergy) { showEnergy = !showEnergy }
+                    LineToggleChip("Blood", RedDark, showBloodflow) { showBloodflow = !showBloodflow }
+                    LineToggleChip("Pain", YellowDark, showPain) { showPain = !showPain }
+                    LineToggleChip("Mood", BlueDark, showMood) { showMood = !showMood }
+                    LineToggleChip("Energy", GreenDark, showEnergy) { showEnergy = !showEnergy }
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -491,9 +495,9 @@ private fun MultiAxisLineChart(
             }
         }
 
-        if (showBloodflow) drawSeries(valuesFlow, Color.Red, true)
-        if (showPain) drawSeries(valuesPain, Color.Yellow, false)
-        if (showMood) drawSeries(valuesMood, Color.Blue, false)
-        if (showEnergy) drawSeries(valuesEnergy, Color.Green, false)
+        if (showBloodflow) drawSeries(valuesFlow, RedDark, true)
+        if (showPain) drawSeries(valuesPain, YellowDark, false)
+        if (showMood) drawSeries(valuesMood, BlueDark, false)
+        if (showEnergy) drawSeries(valuesEnergy, GreenDark, false)
     }
 }
