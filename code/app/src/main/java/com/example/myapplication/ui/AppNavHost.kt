@@ -11,10 +11,10 @@ import com.example.myapplication.ui.navigation.Screen
 import com.example.myapplication.ui.screens.AddEntryPage
 import com.example.myapplication.ui.screens.JournalPage
 import com.example.myapplication.ui.screens.KalenderPage
-import com.example.myapplication.ui.screens.PersonalProfilePage
+
 import com.example.myapplication.ui.screens.StatisticsPage
-import com.example.myapplication.ui.viewModel.PersonalViewModel
 import com.example.myapplication.viewModel.EntryViewModel
+import com.example.myapplication.viewModel.ProfileViewModel
 
 @Composable
 fun AppNavHost(
@@ -29,11 +29,8 @@ fun AppNavHost(
         composable(Screen.Home.route) { KalenderPage(navController) }
         composable(Screen.StatisticsPage.route) { StatisticsPage(navController) }
         composable(Screen.Profile.route) {
-            val personalViewModel: PersonalViewModel = viewModel()
-            PersonalProfilePage(
-                viewModel = personalViewModel,
-                onNavigateBack = { navController.popBackStack() }
-            )
+            val personalViewModel: ProfileViewModel = viewModel()
+
         }
 
 

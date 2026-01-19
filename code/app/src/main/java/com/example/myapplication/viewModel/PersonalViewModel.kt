@@ -1,82 +1,64 @@
-package com.example.myapplication.ui.viewModel
+package com.example.myapplication.viewModel
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.myapplication.db.dailyEntry.DailyEntryDatabase
-import com.example.myapplication.db.dailyEntry.DailyEntryEntity
-import com.example.myapplication.db.profile.ProfileDao
 import com.example.myapplication.db.profile.ProfileDatabase
 import com.example.myapplication.db.profile.ProfileEntity
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-/*class PersonalViewModel(
-    private val profileDao: ProfileDao
-) : ViewModel() {
- */
-class PersonalViewModel(application: Application) : AndroidViewModel(application){
+class ProfileViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val profileDao = ProfileDatabase.getDatabase(application).profileDao()
+    private val dao = ProfileDatabase.getDatabase(application).profileDao()
 
-    private val _profile = MutableStateFlow<ProfileEntity?>(null)
-    val profile: StateFlow<ProfileEntity?> = _profile.asStateFlow()
-
-    private val _isLoading = MutableStateFlow(false)
-    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+    private val _profile = MutableStateFlow(ProfileEntity())   // ✅ never null in UI
+    val profile: StateFlow<ProfileEntity> = _profile
 
     init {
-        loadProfile()
-    }
-
-    private fun loadProfile() {
         viewModelScope.launch {
-            _isLoading.value = true
-            try {
-                profileDao.getProfile().collect { profileEntity ->
-                    if (profileEntity == null) {
-                        val defaultProfile = ProfileEntity(
-                            id = 1,
-                            name = "Test User",
-                            flowerPicture = 1,
-                        )
-
-                        profileDao.insertProfile(defaultProfile)
-                        _profile.value = defaultProfile
-                    } else {
-                        _profile.value = profileEntity
-                    }
-
-                    _isLoading.value = false
+            dao.getProfile().collect { p ->
+                if (p == null) {
+                    // ✅ create default row once
+                    dao.insertProfile(ProfileEntity())
+                    _profile.value = ProfileEntity()
+                } else {
+                    _profile.value = p
                 }
-            } catch (error: Error) {
-                _isLoading.value = false
             }
         }
     }
 
-    fun updateUserName(newName: String) {
+    fun setName(name: String) {
+        val current = _profile.value
         viewModelScope.launch {
-            _profile.value?.let { currentProfile ->
-                val updatedProfile = currentProfile.copy(name = newName)
-                profileDao.updateProfile(updatedProfile)
-            }
+            dao.insertProfile(current.copy(name = name.trim().ifBlank { "there" }))
         }
     }
 
-
-
-    fun updateProfile(name: String, periodLength: Int) {
+    /** flowerIndex = 0..4 */
+    fun setFlowerPicture(flowerIndex: Int) {
+        val current = _profile.value
+        val safeIndex = flowerIndex.coerceIn(0, 4)
         viewModelScope.launch {
-            _profile.value?.let { currentProfile ->
-                val updatedProfile = currentProfile.copy(
-                    name = name,
-                )
-                profileDao.updateProfile(updatedProfile)
-            }
+            dao.insertProfile(current.copy(flowerPicture = safeIndex))
+        }
+    }
+
+    fun setCycleLength(days: Int) {
+        val current = _profile.value
+        val safeDays = days.coerceIn(15, 60)
+        viewModelScope.launch {
+            dao.insertProfile(current.copy(cycleLength = safeDays))
+        }
+    }
+
+    fun setPeriodLength(days: Int) {
+        val current = _profile.value
+        val safeDays = days.coerceIn(1, 15)
+        viewModelScope.launch {
+            dao.insertProfile(current.copy(periodLength = safeDays))
         }
     }
 }
