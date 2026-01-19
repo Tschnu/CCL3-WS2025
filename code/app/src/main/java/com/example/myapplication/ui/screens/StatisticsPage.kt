@@ -35,30 +35,42 @@ import java.time.ZoneId
 
 @Composable
 fun StatisticsPage(navController: NavController) {
-    val entryViewModel: EntryViewModel = viewModel()
-    val stats = entryViewModel.periodStats.collectAsState().value
+    // Two separate VMs so the real chart and prediction chart never overwrite each other
+    val realVm: EntryViewModel = viewModel(key = "realVm")
+    val predVm: EntryViewModel = viewModel(key = "predVm")
 
+    val stats = realVm.periodStats.collectAsState().value
+
+    // ---------------- REAL GRAPH STATE ----------------
     var selectedMonth by remember { mutableStateOf(YearMonth.now()) }
 
-    // load REAL entries for selected month + set base month for predictions
     LaunchedEffect(selectedMonth) {
-        entryViewModel.loadEntriesForMonth(selectedMonth)
-        entryViewModel.setPredictionBaseMonth(selectedMonth)
+        realVm.loadEntriesForMonth(selectedMonth)
     }
 
-    val chartEntries = entryViewModel.entriesForChart.collectAsState().value
-    val predicted = entryViewModel.predictedMonths.collectAsState().value
+    val chartEntries = realVm.entriesForChart.collectAsState().value
 
+    // ---------------- PREDICTION GRAPH STATE ----------------
+    // Prediction is always next 3 months from "now"
+    val currentMonth = remember { YearMonth.now() }
+    val lastMonth = remember { YearMonth.now().minusMonths(1) }
+
+    LaunchedEffect(Unit) {
+        // this load is harmless; prediction logic uses all entries anyway
+        predVm.loadEntriesForMonth(lastMonth)
+        predVm.setPredictionBaseMonth(currentMonth)
+    }
+
+    val predicted = predVm.predictedMonths.collectAsState().value
+
+    var predIndex by remember { mutableStateOf(0) } // 0..2
+    val predMonth = predicted.getOrNull(predIndex)
+
+    // Filters shared by both charts
     var showBloodflow by remember { mutableStateOf(true) }
     var showPain by remember { mutableStateOf(true) }
     var showMood by remember { mutableStateOf(true) }
     var showEnergy by remember { mutableStateOf(true) }
-
-    // prediction month index: 0 = next month, 1 = +2, 2 = +3
-    var predIndex by remember { mutableStateOf(0) }
-    LaunchedEffect(selectedMonth) { predIndex = 0 } // reset when user changes base month
-
-    val predMonth = predicted.getOrNull(predIndex)
 
     Box(
         modifier = Modifier
@@ -209,7 +221,7 @@ fun StatisticsPage(navController: NavController) {
 
                 // ---- PREDICTIONS TITLE ----
                 Text(
-                    text = "Prediction",
+                    text = "Prediction (next 3 months)",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
                     color = Brown,
@@ -218,7 +230,7 @@ fun StatisticsPage(navController: NavController) {
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // ---- PREDICTION MONTH SWITCHER (0/1/2) ----
+                // ---- PREDICTION MONTH SWITCHER (ONLY 3 months max) ----
                 PredictionMonthSelector(
                     predictedMonths = predicted,
                     predIndex = predIndex,
@@ -329,8 +341,8 @@ private fun PredictionMonthSelector(
     onPrev: () -> Unit,
     onNext: () -> Unit
 ) {
-    val title = predictedMonths.getOrNull(predIndex)?.let { ym ->
-        ym.month.month.name.lowercase().replaceFirstChar { it.uppercase() } + " ${ym.month.year}"
+    val title = predictedMonths.getOrNull(predIndex)?.let { mp ->
+        mp.month.month.name.lowercase().replaceFirstChar { it.uppercase() } + " ${mp.month.year}"
     } ?: "Loading..."
 
     Surface(
@@ -376,7 +388,6 @@ private fun PredictedMonthChart(
     showMood: Boolean,
     showEnergy: Boolean
 ) {
-    // if still loading, show an empty chart (no crash)
     val pain = prediction?.painByDay ?: List(30) { 0f }
     val mood = prediction?.moodByDay ?: List(30) { 0f }
     val energy = prediction?.energyByDay ?: List(30) { 0f }
@@ -429,17 +440,7 @@ private fun MultiAxisLineChart(
         drawLine(Color.Black, Offset(right, top), Offset(right, bottom), 3f)
         drawLine(Color.Black, Offset(left, bottom), Offset(right, bottom), 3f)
 
-        fun drawSeries(values: List<Float>, color: Color, rightAxis: Boolean) {
-            val path = Path()
-            for (i in 0 until count) {
-                val px = x(i)
-                val py = if (rightAxis) yRight(values[i]) else yLeft(values[i])
-                if (i == 0) path.moveTo(px, py) else path.lineTo(px, py)
-            }
-            drawPath(path, color, style = Stroke(5f, cap = StrokeCap.Round))
-        }
-
-        // left axis labels (0..5)
+        // ✅ y-axis numbers (OUTSIDE drawSeries)
         for (i in 0..5) {
             val y = yLeft(i.toFloat())
             drawLine(Color.Black, Offset(left - 6f, y), Offset(left, y), 2f)
@@ -454,7 +455,6 @@ private fun MultiAxisLineChart(
             )
         }
 
-        // right axis labels (0..3)
         for (i in 0..3) {
             val y = yRight(i.toFloat())
             drawLine(Color.Black, Offset(right, y), Offset(right + 6f, y), 2f)
@@ -467,6 +467,28 @@ private fun MultiAxisLineChart(
                     textAlign = android.graphics.Paint.Align.LEFT
                 }
             )
+        }
+
+        fun drawSeries(values: List<Float>, color: Color, rightAxis: Boolean) {
+            val path = Path()
+            for (i in 0 until count) {
+                val px = x(i)
+                val py = if (rightAxis) yRight(values[i]) else yLeft(values[i])
+                if (i == 0) path.moveTo(px, py) else path.lineTo(px, py)
+            }
+
+            drawPath(path, color, style = Stroke(5f, cap = StrokeCap.Round))
+
+            // dots (helps show variation clearly)
+            for (i in 0 until count) {
+                val px = x(i)
+                val py = if (rightAxis) yRight(values[i]) else yLeft(values[i])
+                drawCircle(
+                    color = color,
+                    radius = 6f,
+                    center = Offset(px, py)
+                )
+            }
         }
 
         if (showBloodflow) drawSeries(valuesFlow, Color.Red, true)

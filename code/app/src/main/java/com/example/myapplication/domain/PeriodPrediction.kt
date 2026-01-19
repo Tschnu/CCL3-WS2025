@@ -187,50 +187,157 @@ object PeriodForecast {
         val bloodflowByDay: List<Float>
     )
 
-    /**
-     * Predict next [monthsAhead] months (default 3).
-     * For each day-of-month index, we average values from the last 3 months:
-     * baseMonth, baseMonth-1, baseMonth-2.
-     * Missing -> 0.
-     */
     fun predictNextMonthsFromLast3Months(
         allEntries: List<DailyEntryEntity>,
         baseMonth: YearMonth,
         monthsAhead: Int = 3,
-        zoneId: ZoneId = ZoneId.systemDefault()
+        zoneId: ZoneId = ZoneId.systemDefault(),
+        today: LocalDate = LocalDate.now(),
+        monthsBack: Long = 3
     ): List<MonthlyPrediction> {
 
-        val historyMonths = setOf(
-            baseMonth,
-            baseMonth.minusMonths(1),
-            baseMonth.minusMonths(2)
-        )
+        // --- 1) Build date -> entry map for last 3 months (up to today) ---
+        val windowStart = today.minusMonths(monthsBack)
 
-        val historyEntries = allEntries.filter { e ->
-            val d = Instant.ofEpochMilli(e.date).atZone(zoneId).toLocalDate()
-            YearMonth.from(d) in historyMonths
+        val entriesByDate: Map<LocalDate, DailyEntryEntity> = allEntries
+            .map { e -> e to Instant.ofEpochMilli(e.date).atZone(zoneId).toLocalDate() }
+            .filter { (_, d) -> !d.isBefore(windowStart) && !d.isAfter(today) }
+            .associate { (e, d) -> d to e }
+
+        if (entriesByDate.isEmpty()) return emptyList()
+
+        val sortedDates = entriesByDate.keys.sorted()
+
+        // --- 2) Detect period starts: bleeding today, not bleeding yesterday ---
+        val periodStarts = mutableListOf<LocalDate>()
+        for (d in sortedDates) {
+            val bleedToday = (entriesByDate[d]?.bloodflowCategory ?: 0) > 0
+            if (!bleedToday) continue
+            val bleedYesterday = (entriesByDate[d.minusDays(1)]?.bloodflowCategory ?: 0) > 0
+            if (!bleedYesterday) periodStarts.add(d)
         }
 
-        fun avgForDayIndex(dayIndex: Int, selector: (DailyEntryEntity) -> Int): Float {
-            val values = historyEntries.mapNotNull { e ->
-                val d = Instant.ofEpochMilli(e.date).atZone(zoneId).toLocalDate()
-                val idx = d.dayOfMonth - 1
-                if (idx == dayIndex) selector(e) else null
+        if (periodStarts.size < 2) return emptyList()
+
+        // last 3 cycles max (4 starts)
+        val starts = periodStarts.takeLast(4)
+        val cycles: List<Pair<LocalDate, LocalDate>> = starts.zip(starts.drop(1))
+
+        // --- 3) Collect values by cycle-day index (profile) ---
+        val moodBuckets = mutableListOf<MutableList<Float>>()
+        val energyBuckets = mutableListOf<MutableList<Float>>()
+        val painBuckets = mutableListOf<MutableList<Float>>()
+        val flowBuckets = mutableListOf<MutableList<Float>>()
+
+        fun ensureSize(i: Int) {
+            while (moodBuckets.size <= i) {
+                moodBuckets.add(mutableListOf())
+                energyBuckets.add(mutableListOf())
+                painBuckets.add(mutableListOf())
+                flowBuckets.add(mutableListOf())
             }
-            return if (values.isEmpty()) 0f else values.average().toFloat()
         }
 
+        for ((start, end) in cycles) {
+            var d = start
+            var idx = 0
+            while (d.isBefore(end)) {
+                val e = entriesByDate[d]
+                if (e != null) {
+                    ensureSize(idx)
+                    moodBuckets[idx].add(e.moodCategory.toFloat())
+                    energyBuckets[idx].add(e.energyCategory.toFloat())
+                    painBuckets[idx].add(e.painCategory.toFloat())
+                    flowBuckets[idx].add(e.bloodflowCategory.toFloat())
+                }
+                d = d.plusDays(1)
+                idx++
+                if (idx > 60) break
+            }
+        }
+
+        fun avg(list: List<Float>): Float = if (list.isEmpty()) 0f else list.average().toFloat()
+
+        val cycleProfile: List<CycleDay> = moodBuckets.indices.map { i ->
+            CycleDay(
+                mood = avg(moodBuckets[i]),
+                energy = avg(energyBuckets[i]),
+                pain = avg(painBuckets[i]),
+                flow = avg(flowBuckets[i])
+            )
+        }
+
+        if (cycleProfile.isEmpty()) return emptyList()
+
+        // ✅ IMPORTANT FIX: use REAL cycle length (diffs) not profile size
+        val diffs = starts
+            .zipWithNext { a, b -> ChronoUnit.DAYS.between(a, b).toInt() }
+            .filter { it in 15..60 }
+
+        val cycleLen = (if (diffs.isNotEmpty()) diffs.average().roundToInt() else cycleProfile.size)
+            .coerceIn(21, 40)
+
+        // build a profile exactly cycleLen long (so it doesn't repeat too fast)
+        val effectiveProfile: List<CycleDay> =
+            if (cycleProfile.size >= cycleLen) {
+                cycleProfile.take(cycleLen)
+            } else {
+                val extended = mutableListOf<CycleDay>()
+                extended.addAll(cycleProfile)
+                while (extended.size < cycleLen) {
+                    extended.add(cycleProfile[extended.size % cycleProfile.size])
+                }
+                extended
+            }
+
+        val lastStart = starts.last()
+
+        fun clampMood(v: Float) = v.coerceIn(1f, 5f)
+        fun clampEnergy(v: Float) = v.coerceIn(1f, 5f)
+        fun clampPain(v: Float) = v.coerceIn(1f, 5f)
+        fun clampFlow(v: Float) = v.coerceIn(0f, 3f)
+
+        fun cycleIndexForDate(date: LocalDate): Int {
+            val daysSinceStart = ChronoUnit.DAYS.between(lastStart, date).toInt()
+            val mod = ((daysSinceStart % cycleLen) + cycleLen) % cycleLen
+            return mod
+        }
+
+        // --- 4) Build next 3 months using cycle-day averages ---
         return (1..monthsAhead).map { offset ->
             val month = baseMonth.plusMonths(offset.toLong())
             val daysInMonth = month.lengthOfMonth()
 
+            val pain = MutableList(daysInMonth) { 0f }
+            val mood = MutableList(daysInMonth) { 0f }
+            val energy = MutableList(daysInMonth) { 0f }
+            val flow = MutableList(daysInMonth) { 0f }
+
+            for (day in 1..daysInMonth) {
+                val date = month.atDay(day)
+                val idx = cycleIndexForDate(date)
+                val p = effectiveProfile[idx]
+
+                pain[day - 1] = clampPain(p.pain)
+                mood[day - 1] = clampMood(p.mood)
+                energy[day - 1] = clampEnergy(p.energy)
+                flow[day - 1] = clampFlow(p.flow)
+            }
+
             MonthlyPrediction(
                 month = month,
-                painByDay = List(daysInMonth) { i -> avgForDayIndex(i) { it.painCategory } },
-                moodByDay = List(daysInMonth) { i -> avgForDayIndex(i) { it.moodCategory } },
-                energyByDay = List(daysInMonth) { i -> avgForDayIndex(i) { it.energyCategory } },
-                bloodflowByDay = List(daysInMonth) { i -> avgForDayIndex(i) { it.bloodflowCategory } }
+                painByDay = pain,
+                moodByDay = mood,
+                energyByDay = energy,
+                bloodflowByDay = flow
             )
         }
     }
+
+    private data class CycleDay(
+        val mood: Float,
+        val energy: Float,
+        val pain: Float,
+        val flow: Float
+    )
 }

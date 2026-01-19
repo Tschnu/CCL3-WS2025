@@ -14,6 +14,8 @@ import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.LocalDate
 import java.time.YearMonth
+import android.util.Log
+
 import java.time.ZoneId
 
 class EntryViewModel(application: Application) : AndroidViewModel(application) {
@@ -39,18 +41,35 @@ class EntryViewModel(application: Application) : AndroidViewModel(application) {
      * Call this from StatisticsPage whenever the user changes the month.
      * Predictions are always: next 3 months, based on the last 3 months of data (ending at baseMonth).
      */
-    fun setPredictionBaseMonth(baseMonth: YearMonth) {
-        _predictionBaseMonth.value = baseMonth
+    fun setPredictionBaseMonth(@Suppress("UNUSED_PARAMETER") baseMonth: YearMonth) {
+        // Predictions are always from "now"
+        _predictionBaseMonth.value = YearMonth.now()
         recalcPredictions()
     }
 
+
     private fun recalcPredictions() {
-        _predictedMonths.value = PeriodForecast.predictNextMonthsFromLast3Months(
+        val result = PeriodForecast.predictNextMonthsFromLast3Months(
             allEntries = _allEntries.value,
-            baseMonth = _predictionBaseMonth.value,
+            baseMonth = YearMonth.now(),
             monthsAhead = 3
         )
+        _predictedMonths.value = result
+
+        // DEBUG: print first 10 values of the first predicted month
+        val first = result.firstOrNull()
+        if (first != null) {
+            Log.d("PRED", "month=${first.month}")
+            Log.d("PRED", "pain=${first.painByDay.take(10)}")
+            Log.d("PRED", "mood=${first.moodByDay.take(10)}")
+            Log.d("PRED", "energy=${first.energyByDay.take(10)}")
+            Log.d("PRED", "flow=${first.bloodflowByDay.take(10)}")
+        } else {
+            Log.d("PRED", "No predictions generated (result empty)")
+        }
     }
+
+
 
     // ----------------------------
     // Daily input state
