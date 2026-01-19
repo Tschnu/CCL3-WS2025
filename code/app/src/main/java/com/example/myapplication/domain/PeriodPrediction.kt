@@ -176,7 +176,7 @@ object PeriodForecast {
     }
 
     // ------------------------------------------------------------------------
-    // 🔮 PREDICTIONS: NEXT 3 MONTHS (daily values) from last 3 months averages
+    // 🔮 PREDICTIONS: NEXT 3 MONTHS (daily values)
     // ------------------------------------------------------------------------
 
     data class MonthlyPrediction(
@@ -196,7 +196,6 @@ object PeriodForecast {
         monthsBack: Long = 3
     ): List<MonthlyPrediction> {
 
-        // --- 1) Build date -> entry map for last 3 months (up to today) ---
         val windowStart = today.minusMonths(monthsBack)
 
         val entriesByDate: Map<LocalDate, DailyEntryEntity> = allEntries
@@ -208,7 +207,7 @@ object PeriodForecast {
 
         val sortedDates = entriesByDate.keys.sorted()
 
-        // --- 2) Detect period starts: bleeding today, not bleeding yesterday ---
+        // Detect period starts: bleeding today, not bleeding yesterday
         val periodStarts = mutableListOf<LocalDate>()
         for (d in sortedDates) {
             val bleedToday = (entriesByDate[d]?.bloodflowCategory ?: 0) > 0
@@ -223,7 +222,7 @@ object PeriodForecast {
         val starts = periodStarts.takeLast(4)
         val cycles: List<Pair<LocalDate, LocalDate>> = starts.zip(starts.drop(1))
 
-        // --- 3) Collect values by cycle-day index (profile) ---
+        // Collect values by cycle-day index (profile)
         val moodBuckets = mutableListOf<MutableList<Float>>()
         val energyBuckets = mutableListOf<MutableList<Float>>()
         val painBuckets = mutableListOf<MutableList<Float>>()
@@ -269,26 +268,45 @@ object PeriodForecast {
 
         if (cycleProfile.isEmpty()) return emptyList()
 
-        // ✅ IMPORTANT FIX: use REAL cycle length (diffs) not profile size
+        // ✅ cycle length from real period start diffs
         val diffs = starts
             .zipWithNext { a, b -> ChronoUnit.DAYS.between(a, b).toInt() }
             .filter { it in 15..60 }
 
-        val cycleLen = (if (diffs.isNotEmpty()) diffs.average().roundToInt() else cycleProfile.size)
+        val cycleLen = (if (diffs.isNotEmpty()) diffs.average().roundToInt() else 28)
             .coerceIn(21, 40)
 
-        // build a profile exactly cycleLen long (so it doesn't repeat too fast)
-        val effectiveProfile: List<CycleDay> =
-            if (cycleProfile.size >= cycleLen) {
-                cycleProfile.take(cycleLen)
-            } else {
-                val extended = mutableListOf<CycleDay>()
-                extended.addAll(cycleProfile)
-                while (extended.size < cycleLen) {
-                    extended.add(cycleProfile[extended.size % cycleProfile.size])
+        // ✅ how many days at the start are bleeding?
+        val periodLen = run {
+            var len = 0
+            while (len < cycleProfile.size && cycleProfile[len].flow > 0f) len++
+            len.coerceIn(3, 10)
+        }
+
+        // ✅ baseline day for non-period days
+        val nonPeriod = cycleProfile.filter { it.flow <= 0f }
+        val baseline = if (nonPeriod.isNotEmpty()) {
+            CycleDay(
+                mood = nonPeriod.map { it.mood }.average().toFloat(),
+                energy = nonPeriod.map { it.energy }.average().toFloat(),
+                pain = nonPeriod.map { it.pain }.average().toFloat(),
+                flow = 0f
+            )
+        } else {
+            CycleDay(mood = 3f, energy = 3f, pain = 1f, flow = 0f)
+        }
+
+        // ✅ build a FULL cycle without repeating bleeding
+        val effectiveProfile: List<CycleDay> = List(cycleLen) { i ->
+            when {
+                i < cycleProfile.size -> {
+                    val p = cycleProfile[i]
+                    // force NO bleeding after periodLen
+                    if (i >= periodLen) p.copy(flow = 0f) else p
                 }
-                extended
+                else -> baseline
             }
+        }
 
         val lastStart = starts.last()
 
@@ -299,11 +317,10 @@ object PeriodForecast {
 
         fun cycleIndexForDate(date: LocalDate): Int {
             val daysSinceStart = ChronoUnit.DAYS.between(lastStart, date).toInt()
-            val mod = ((daysSinceStart % cycleLen) + cycleLen) % cycleLen
-            return mod
+            return ((daysSinceStart % cycleLen) + cycleLen) % cycleLen
         }
 
-        // --- 4) Build next 3 months using cycle-day averages ---
+        // Build next 3 months using cycle-day averages
         return (1..monthsAhead).map { offset ->
             val month = baseMonth.plusMonths(offset.toLong())
             val daysInMonth = month.lengthOfMonth()
