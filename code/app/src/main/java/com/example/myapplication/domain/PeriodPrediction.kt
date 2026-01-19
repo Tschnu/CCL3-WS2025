@@ -47,12 +47,19 @@ object PeriodForecast {
         // ------------------------------------------------------------
         val periodStarts = mutableListOf<LocalDate>()
         for (d in sortedDays) {
-            val bleedToday = (recent[d] ?: 0) > 0
-            val bleedYesterday = (recent[d.minusDays(1)] ?: 0) > 0
-            if (bleedToday && !bleedYesterday) {
+            val bleedToday = (entriesByDate[d] ?: 0) > 0
+            if (!bleedToday) continue
+
+            val bleedYesterday = (entriesByDate[d.minusDays(1)] ?: 0) > 0
+
+
+            val isToday = d == today
+
+            if (!bleedYesterday && !isToday) {
                 periodStarts.add(d)
             }
         }
+
 
         if (periodStarts.isEmpty()) return emptyMap()
 
