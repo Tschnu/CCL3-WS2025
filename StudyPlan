@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quiet Bloom – Usability Test Plan</title>
+  <style>
+    :root{
+      --bg: #0f1115;
+      --card: #171a21;
+      --card2: #141821;
+      --text: #e9eef7;
+      --muted: #aeb8c6;
+      --border: rgba(255,255,255,0.08);
+      --accent: #ff8a3d; /* warm orange */
+      --accent2: #7dd3fc; /* soft blue */
+      --good: #34d399;
+      --warn: #fbbf24;
+      --bad: #fb7185;
+      --shadow: 0 10px 30px rgba(0,0,0,0.35);
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; }
+    body{
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      background: radial-gradient(1200px 800px at 20% 10%, rgba(255,138,61,0.12), transparent 60%),
+                  radial-gradient(1000px 700px at 80% 20%, rgba(125,211,252,0.10), transparent 55%),
+                  var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    header{
+      padding: 44px 18px 24px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .badge{
+      display: inline-flex;
+      gap: 10px;
+      align-items: center;
+      padding: 8px 12px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .dot{
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      box-shadow: 0 0 0 4px rgba(255,138,61,0.10);
+    }
+
+    h1{
+      margin: 16px 0 8px;
+      font-size: clamp(26px, 4vw, 44px);
+      letter-spacing: -0.02em;
+    }
+    .subtitle{
+      max-width: 70ch;
+      color: var(--muted);
+      margin: 0;
+      font-size: 16px;
+    }
+
+    main{
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 18px 60px;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+
+    .grid{
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+
+    @media (min-width: 900px){
+      .grid.two { grid-template-columns: 1.1fr 0.9fr; }
+      .grid.three { grid-template-columns: repeat(3, 1fr); }
+    }
+
+    section{
+      background: linear-gradient(180deg, rgba(255,255,255,0.03), transparent 70%);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    section h2{
+      margin: 0 0 10px;
+      font-size: 18px;
+      letter-spacing: -0.01em;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .icon{
+      width: 30px;
+      height: 30px;
+      border-radius: 10px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255,138,61,0.10);
+      border: 1px solid rgba(255,138,61,0.25);
+      color: var(--text);
+      font-size: 15px;
+      flex: 0 0 auto;
+    }
+
+    p, li{ color: var(--text); }
+    .muted{ color: var(--muted); }
+
+    ul{
+      margin: 10px 0 0;
+      padding-left: 18px;
+    }
+    li{ margin: 6px 0; }
+
+    .pillrow{
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .pill{
+      padding: 7px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.04);
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .tablewrap{
+      margin-top: 12px;
+      overflow-x: auto;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: rgba(0,0,0,0.18);
+    }
+
+    table{
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 820px;
+    }
+    th, td{
+      padding: 12px 12px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+      font-size: 14px;
+    }
+    th{
+      color: var(--muted);
+      font-weight: 600;
+      background: rgba(255,255,255,0.03);
+    }
+    tr:last-child td{ border-bottom: none; }
+
+    .sev{
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 13px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.03);
+      white-space: nowrap;
+    }
+    .sev .bar{
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: var(--warn);
+    }
+    .sev.s1 .bar{ background: var(--good); }
+    .sev.s2 .bar{ background: var(--warn); }
+    .sev.s3 .bar{ background: var(--bad); }
+
+    .callout{
+      margin-top: 12px;
+      padding: 12px 12px;
+      border-radius: 14px;
+      background: rgba(125,211,252,0.08);
+      border: 1px solid rgba(125,211,252,0.22);
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .smallgrid{
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    @media (min-width: 900px){
+      .smallgrid{ grid-template-columns: 1fr 1fr; }
+    }
+
+    .mini{
+      padding: 12px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.03);
+    }
+    .mini h3{
+      margin: 0 0 6px;
+      font-size: 14px;
+      color: var(--text);
+    }
+    .mini p{
+      margin: 0;
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    footer{
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 18px 40px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    a{ color: var(--accent2); text-decoration: none; }
+    a:hover{ text-decoration: underline; }
+  </style>
+</head>
+
+<body>
+  <header>
+    <div class="badge"><span class="dot"></span> Usability Test Documentation – Quiet Bloom</div>
+    <h1>Heuristic Evaluation & User Test Plan</h1>
+    <p class="subtitle">
+      This page summarizes the heuristic evaluation (Nielsen’s 10 heuristics) and the planned user test to assess
+      whether Quiet Bloom supports users in understanding and predicting mood, pain, energy levels, and period flow.
+    </p>
+  </header>
+
+  <main>
+    <div class="grid two">
+      <section>
+        <h2><span class="icon">1</span> Heuristic Evaluation</h2>
+        <p class="muted">
+          Before running the user test, a heuristic evaluation will be conducted based on Nielsen’s 10 Usability Heuristics.
+          The evaluation focuses on:
+        </p>
+        <div class="pillrow" aria-label="Focus areas">
+          <span class="pill">Calendar navigation</span>
+          <span class="pill">Adding daily entries</span>
+          <span class="pill">Statistics & predictions</span>
+          <span class="pill">Journal overview</span>
+        </div>
+
+        <div class="tablewrap" role="region" aria-label="Heuristic findings table">
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 140px;">Page</th>
+                <th>Problem</th>
+                <th style="width: 210px;">Heuristic</th>
+                <th style="width: 110px;">Severity</th>
+                <th style="width: 220px;">Fix</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>KalenderScreen</strong></td>
+                <td>Period prediction messes up when the user inputs a new period that is still ongoing.</td>
+                <td>Visibility of system status</td>
+                <td><span class="sev s3"><span class="bar"></span>3 (High)</span></td>
+                <td>Improve visibility/handling of ongoing periods so predictions update correctly.</td>
+              </tr>
+
+              <tr>
+                <td><strong>Start</strong></td>
+                <td>Application name is missing.</td>
+                <td>Consistency and standards</td>
+                <td><span class="sev s1"><span class="bar"></span>1 (Low)</span></td>
+                <td>Rename the app in the manifest.</td>
+              </tr>
+
+              <tr>
+                <td><strong>Add entry page</strong></td>
+                <td>Delete entry button is hidden.</td>
+                <td>User control and freedom</td>
+                <td><span class="sev s2"><span class="bar"></span>2 (Medium)</span></td>
+                <td>Make the delete action visible and accessible.</td>
+              </tr>
+
+              <tr>
+                <td><strong>Statistics page</strong></td>
+                <td>Statistics colors don’t match the theme of the rest of the app.</td>
+                <td>Consistency and standards</td>
+                <td><span class="sev s2"><span class="bar"></span>2 (Medium)</span></td>
+                <td>Adjust chart colors to align with the app theme.</td>
+              </tr>
+
+              <tr>
+                <td><strong>All back buttons</strong></td>
+                <td>Clicking back too many times leads to an empty / non-existing page.</td>
+                <td>Error prevention / User control</td>
+                <td><span class="sev s3"><span class="bar"></span>3 (High)</span></td>
+                <td>Prevent repeated navigation (debounce/disable) and block invalid back stack.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout">
+          <strong>Note:</strong> Severity scale used here is 1 (low) → 3 (high). You can adapt this to 0–4 if your course requires Nielsen’s standard severity scale.
+        </div>
+      </section>
+
+      <section>
+        <h2><span class="icon">2</span> Hypotheses</h2>
+        <div class="mini">
+          <h3>Main hypothesis</h3>
+          <p>
+            Does the app help users predict and understand their <strong>mood</strong>, <strong>pain</strong>,
+            <strong>energy levels</strong>, and <strong>period flow</strong> in a simple and easy-to-understand way?
+          </p>
+        </div>
+
+        <div class="mini" style="margin-top:10px;">
+          <h3>Additional questions</h3>
+          <ul>
+            <li>Is the app perceived as intuitive compared to other period tracking apps?</li>
+            <li>Do users understand how to input data and interpret predictions?</li>
+            <li>Do the visuals support understanding and reflection?</li>
+          </ul>
+        </div>
+
+        <div class="smallgrid">
+          <div class="mini">
+            <h3>Independent Variable (IV)</h3>
+            <p>Quiet Bloom compared to another existing period tracking app.</p>
+          </div>
+          <div class="mini">
+            <h3>Dependent Variable (DV)</h3>
+            <p>Usability of the app.</p>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div class="grid three">
+      <section>
+        <h2><span class="icon">3</span> Data Collection</h2>
+        <div class="mini">
+          <h3>Quantitative</h3>
+          <ul>
+            <li>Task completion rate</li>
+            <li>Time needed to complete tasks</li>
+            <li>Number of errors or misunderstandings</li>
+            <li>System Usability Scale (SUS) score</li>
+          </ul>
+        </div>
+        <div class="mini" style="margin-top:10px;">
+          <h3>Qualitative</h3>
+          <ul>
+            <li>Think-aloud comments during tasks</li>
+            <li>Interview feedback on predictions and statistics</li>
+            <li>Feedback on visual design (icons, colors, layout)</li>
+            <li>Subjective impressions of accuracy and usefulness</li>
+          </ul>
+        </div>
+      </section>
+
+      <section>
+        <h2><span class="icon">4</span> Method</h2>
+        <ul>
+          <li><strong>Study design:</strong> Within-subject comparison (Quiet Bloom vs. another app)</li>
+          <li><strong>Session type:</strong> Moderated usability testing</li>
+          <li><strong>Protocol:</strong> Think-aloud</li>
+        </ul>
+        <div class="callout">
+          Tip: Keep the comparison app consistent across participants (or clearly document which app each participant used).
+        </div>
+      </section>
+
+      <section>
+        <h2><span class="icon">5</span> Participants</h2>
+        <ul>
+          <li>People who menstruate and are familiar with period tracking</li>
+          <li>Small sample size (5+ participants) for formative usability testing</li>
+        </ul>
+        <div class="callout">
+          If you recruit beyond friends, include a short screening checklist (period tracking experience, comfort with think-aloud, etc.).
+        </div>
+      </section>
+    </div>
+
+    <section>
+      <h2><span class="icon">6</span> Tasks (Planned Sequence)</h2>
+      <ol>
+        <li>
+          Input data of your last period (blood flow + other symptoms). Then open your usual period app and compare how accurate it is.
+          Then input the period before that and check again, and then the one before that.
+          <span class="muted">(Ask for day differences between cycles.)</span>
+        </li>
+        <li>Input today’s symptoms (including mood) and add a journal entry.</li>
+        <li>Find your average cycle length and average period length.</li>
+        <li>Find the journal entries overview and edit an entry.</li>
+        <li>Go to the calendar and delete today’s entry from there.</li>
+        <li>Find and look at the graphs. Are they clear? How do you feel about them? Try the categories.</li>
+        <li>Change your name and profile picture.</li>
+      </ol>
+    </section>
+
+    <section>
+      <h2><span class="icon">7</span> Interview Questions</h2>
+      <ul>
+        <li>How do you feel about the style of the app? Is it appealing to you?</li>
+        <li>Is there anything missing?</li>
+        <li>Would you use this app? Why?</li>
+        <li>Would you use a section with recommendations about each cycle phase?</li>
+        <li>Would you be interested in seeing your ovulation in the calendar?</li>
+      </ul>
+    </section>
+  </main>
+
+  <footer>
+    <p>
+      Document: Quiet Bloom – Heuristic Evaluation & Usability Test Plan.
+      <span class="muted">You can paste this into your report or export it as PDF from the browser print menu.</span>
+    </p>
+  </footer>
+</body>
+</html>
