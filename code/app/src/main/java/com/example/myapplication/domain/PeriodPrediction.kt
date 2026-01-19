@@ -244,10 +244,12 @@ object PeriodForecast {
                 val e = entriesByDate[d]
                 if (e != null) {
                     ensureSize(idx)
-                    moodBuckets[idx].add(e.moodCategory.toFloat())
-                    energyBuckets[idx].add(e.energyCategory.toFloat())
-                    painBuckets[idx].add(e.painCategory.toFloat())
-                    flowBuckets[idx].add(e.bloodflowCategory.toFloat())
+
+                    // ✅ IMPORTANT: ignore "not logged" values (0) so averages don't invent data
+                    if (e.moodCategory in 1..5) moodBuckets[idx].add(e.moodCategory.toFloat())
+                    if (e.energyCategory in 1..5) energyBuckets[idx].add(e.energyCategory.toFloat())
+                    if (e.painCategory in 1..5) painBuckets[idx].add(e.painCategory.toFloat())
+                    if (e.bloodflowCategory in 0..3) flowBuckets[idx].add(e.bloodflowCategory.toFloat())
                 }
                 d = d.plusDays(1)
                 idx++
@@ -293,7 +295,8 @@ object PeriodForecast {
                 flow = 0f
             )
         } else {
-            CycleDay(mood = 3f, energy = 3f, pain = 1f, flow = 0f)
+            // ✅ if there's basically no data, don't invent pain/mood/energy
+            CycleDay(mood = 0f, energy = 0f, pain = 0f, flow = 0f)
         }
 
         // ✅ build a FULL cycle without repeating bleeding
@@ -310,9 +313,9 @@ object PeriodForecast {
 
         val lastStart = starts.last()
 
-        fun clampMood(v: Float) = v.coerceIn(1f, 5f)
-        fun clampEnergy(v: Float) = v.coerceIn(1f, 5f)
-        fun clampPain(v: Float) = v.coerceIn(1f, 5f)
+        fun clampMood(v: Float) = v.coerceIn(0f, 5f)
+        fun clampEnergy(v: Float) = v.coerceIn(0f, 5f)
+        fun clampPain(v: Float) = v.coerceIn(0f, 5f)
         fun clampFlow(v: Float) = v.coerceIn(0f, 3f)
 
         fun cycleIndexForDate(date: LocalDate): Int {
