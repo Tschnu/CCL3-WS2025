@@ -11,6 +11,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -44,6 +45,8 @@ import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.YearMonth
 import java.time.ZoneId
+import androidx.compose.ui.geometry.Size
+
 
 @Composable
 fun StatisticsPage(navController: NavController) {
@@ -321,191 +324,213 @@ fun StatisticsPage(navController: NavController) {
                 .padding(20.dp),
             contentAlignment = Alignment.TopCenter
         ) {
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(20.dp),
-                tonalElevation = 2.dp
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState()),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(20.dp)
-                        .verticalScroll(rememberScrollState()),
-                    horizontalAlignment = Alignment.CenterHorizontally
+
+                // ✅ HEADER (NO BACKGROUND)
+                // ✅ HEADER (NO BACKGROUND)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
+                    Text(
+                        text = "Analyze",
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.SemiBold
+                    )
 
-                    // top row with hamburger icon (top-left)
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        IconButton(onClick = { scope.launch { drawerState.open() } }) {
-                            Icon(
-                                imageVector = Icons.Default.Menu,
-                                contentDescription = "Open settings",
-                                tint = Brown
-                            )
-                        }
-
-                        Spacer(Modifier.width(8.dp))
-
-                        Text(
-                            text = "Analyze",
-                            style = MaterialTheme.typography.headlineMedium,
-                            fontWeight = FontWeight.SemiBold
+                    IconButton(onClick = { scope.launch { drawerState.open() } }) {
+                        Icon(
+                            imageVector = Icons.Default.Settings,
+                            contentDescription = "Open settings",
+                            tint = Brown
                         )
                     }
+                }
 
-                    Spacer(modifier = Modifier.height(18.dp))
 
-                    // ---- JOURNAL BUTTON ----
-                    Button(
-                        onClick = { navController.navigate(Screen.Journal.route) },
-                        colors = ButtonDefaults.buttonColors(containerColor = Brown),
-                        shape = RoundedCornerShape(14.dp),
+                Spacer(modifier = Modifier.height(18.dp))
+
+                // ✅ CARD: Journal Button + Averages only
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(20.dp),
+                    tonalElevation = 2.dp
+                ) {
+                    Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(56.dp)
+                            .padding(20.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Box(
-                            modifier = Modifier.fillMaxWidth(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = "Journal Entries",
-                                style = MaterialTheme.typography.titleLarge,
-                                fontWeight = FontWeight.SemiBold,
-                                textAlign = TextAlign.Center,
-                                color = Softsoftyellow
-                            )
 
-                            Icon(
-                                painter = painterResource(id = R.drawable.journal),
-                                contentDescription = null,
-                                modifier = Modifier
-                                    .align(Alignment.CenterStart)
-                                    .padding(start = 12.dp)
-                                    .size(24.dp)
-                            )
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(16.dp))
-                    HorizontalDivider(color = Brown, thickness = 2.dp)
-
-                    Spacer(modifier = Modifier.height(10.dp))
-                    Text(
-                        text = "Averages in days",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        color = Brown
-                    )
-
-                    Spacer(modifier = Modifier.height(10.dp))
-                    HorizontalDivider(color = Brown, thickness = 2.dp)
-
-                    Spacer(modifier = Modifier.height(18.dp))
-                    StatRow("Cycle length", "${stats.avgCycleDays}")
-                    Spacer(modifier = Modifier.height(14.dp))
-                    StatRow("Average Period", "${stats.avgPeriodDays}")
-
-                    Spacer(modifier = Modifier.height(24.dp))
-
-                    Surface(
-                        shape = RoundedCornerShape(20.dp),
-                        color = Brown.copy(alpha = 0.1f)
-                    ) {
-                        Row(
+                        // ---- JOURNAL BUTTON ----
+                        Button(
+                            onClick = { navController.navigate(Screen.Journal.route) },
+                            colors = ButtonDefaults.buttonColors(containerColor = Brown),
+                            shape = RoundedCornerShape(14.dp),
                             modifier = Modifier
-                                .padding(horizontal = 14.dp, vertical = 6.dp),
-                            verticalAlignment = Alignment.CenterVertically
+                                .fillMaxWidth()
+                                .height(56.dp)
                         ) {
-                            Text(
-                                text = "‹",
-                                color = Brown,
-                                modifier = Modifier
-                                    .padding(horizontal = 8.dp)
-                                    .clickable { selectedMonth = selectedMonth.minusMonths(1) }
-                            )
+                            Box(
+                                modifier = Modifier.fillMaxWidth(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = "Journal Entries",
+                                    style = MaterialTheme.typography.titleLarge,
+                                    fontWeight = FontWeight.SemiBold,
+                                    textAlign = TextAlign.Center,
+                                    color = Softsoftyellow
+                                )
 
-                            Text(
-                                text = selectedMonth.month.name.lowercase()
-                                    .replaceFirstChar { it.uppercase() } +
-                                        " ${selectedMonth.year}",
-                                fontWeight = FontWeight.SemiBold,
-                                color = Brown
-                            )
-
-                            Text(
-                                text = "›",
-                                color = Brown,
-                                modifier = Modifier
-                                    .padding(horizontal = 8.dp)
-                                    .clickable { selectedMonth = selectedMonth.plusMonths(1) }
-                            )
+                                Icon(
+                                    painter = painterResource(id = R.drawable.journal),
+                                    contentDescription = null,
+                                    modifier = Modifier
+                                        .align(Alignment.CenterStart)
+                                        .padding(start = 12.dp)
+                                        .size(24.dp)
+                                )
+                            }
                         }
+
+                        Spacer(modifier = Modifier.height(16.dp))
+                        HorizontalDivider(color = Brown, thickness = 2.dp)
+
+                        Spacer(modifier = Modifier.height(10.dp))
+                        Text(
+                            text = "Averages in days",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = Brown
+                        )
+
+                        Spacer(modifier = Modifier.height(10.dp))
+                        HorizontalDivider(color = Brown, thickness = 2.dp)
+
+                        Spacer(modifier = Modifier.height(18.dp))
+                        StatRow("Cycle length", "${stats.avgCycleDays}")
+                        Spacer(modifier = Modifier.height(14.dp))
+                        StatRow("Average Period", "${stats.avgPeriodDays}")
                     }
-
-                    Spacer(modifier = Modifier.height(20.dp))
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        LineToggleChip("Blood", RedDark, showBloodflow) { showBloodflow = !showBloodflow }
-                        LineToggleChip("Pain", YellowDark, showPain) { showPain = !showPain }
-                        LineToggleChip("Mood", BlueDark, showMood) { showMood = !showMood }
-                        LineToggleChip("Energy", GreenDark, showEnergy) { showEnergy = !showEnergy }
-                    }
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    DailyMetricsChart(
-                        entries = chartEntries,
-                        month = selectedMonth,
-                        showBloodflow = showBloodflow,
-                        showPain = showPain,
-                        showMood = showMood,
-                        showEnergy = showEnergy
-                    )
-
-                    Spacer(modifier = Modifier.height(24.dp))
-                    HorizontalDivider(color = Brown, thickness = 2.dp)
-                    Spacer(modifier = Modifier.height(10.dp))
-
-                    Text(
-                        text = "Prediction (next 3 months)",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        color = Brown,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    PredictionMonthSelector(
-                        predictedMonths = predicted,
-                        predIndex = predIndex,
-                        onPrev = { if (predIndex > 0) predIndex-- },
-                        onNext = { if (predIndex < 2) predIndex++ }
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    PredictedMonthChart(
-                        prediction = predMonth,
-                        showBloodflow = showBloodflow,
-                        showPain = showPain,
-                        showMood = showMood,
-                        showEnergy = showEnergy
-                    )
                 }
+
+                // ✅ EVERYTHING BELOW = NO BACKGROUND
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // Month selector (no card background)
+                Surface(
+                    shape = RoundedCornerShape(20.dp),
+                    color = Brown.copy(alpha = 0.1f) // keep this small pill if you want
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "‹",
+                            color = Brown,
+                            modifier = Modifier
+                                .padding(horizontal = 8.dp)
+                                .clickable { selectedMonth = selectedMonth.minusMonths(1) }
+                        )
+
+                        Text(
+                            text = selectedMonth.month.name.lowercase()
+                                .replaceFirstChar { it.uppercase() } +
+                                    " ${selectedMonth.year}",
+                            fontWeight = FontWeight.SemiBold,
+                            color = Brown
+                        )
+
+                        Text(
+                            text = "›",
+                            color = Brown,
+                            modifier = Modifier
+                                .padding(horizontal = 8.dp)
+                                .clickable { selectedMonth = selectedMonth.plusMonths(1) }
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                // Filter chips
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    LineToggleChip("Blood", RedDark, showBloodflow) {
+                        showBloodflow = !showBloodflow
+                    }
+                    LineToggleChip("Pain", YellowDark, showPain) { showPain = !showPain }
+                    LineToggleChip("Mood", BlueDark, showMood) { showMood = !showMood }
+                    LineToggleChip("Energy", GreenDark, showEnergy) { showEnergy = !showEnergy }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Real chart (no background)
+                DailyMetricsChart(
+                    entries = chartEntries,
+                    month = selectedMonth,
+                    showBloodflow = showBloodflow,
+                    showPain = showPain,
+                    showMood = showMood,
+                    showEnergy = showEnergy
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+                HorizontalDivider(color = Brown, thickness = 2.dp)
+                Spacer(modifier = Modifier.height(10.dp))
+
+                Text(
+                    text = "Prediction (next 3 months)",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Brown,
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                PredictionMonthSelector(
+                    predictedMonths = predicted,
+                    predIndex = predIndex,
+                    onPrev = { if (predIndex > 0) predIndex-- },
+                    onNext = { if (predIndex < 2) predIndex++ }
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                PredictedMonthChart(
+                    prediction = predMonth,
+                    showBloodflow = showBloodflow,
+                    showPain = showPain,
+                    showMood = showMood,
+                    showEnergy = showEnergy
+                )
+
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                MoodDonutChart(
+                    entries = chartEntries,
+                    month = selectedMonth
+                )
+
             }
         }
-    }
-}
+    }}
 
-@Composable
+        @Composable
 private fun FlowerChoice(
     resId: Int,
     selected: Boolean,
@@ -651,6 +676,149 @@ private fun PredictionMonthSelector(
         }
     }
 }
+
+@Composable
+fun MoodDonutChart(
+    entries: List<DailyEntryEntity>,
+    month: YearMonth,
+    zoneId: ZoneId = ZoneId.systemDefault(),
+    modifier: Modifier = Modifier
+) {
+    // Keep only entries from this month + only "logged" mood values 1..5
+    val moodValues = entries
+        .filter {
+            val d = Instant.ofEpochMilli(it.date).atZone(zoneId).toLocalDate()
+            YearMonth.from(d) == month
+        }
+        .mapNotNull { e -> e.moodCategory.takeIf { it in 1..5 } }
+
+    val total = moodValues.size
+
+    // counts[0] -> mood 1, counts[4] -> mood 5
+    val counts = IntArray(5)
+    for (m in moodValues) counts[m - 1]++
+
+    val perc = FloatArray(5) { i ->
+        if (total == 0) 0f else counts[i].toFloat() / total.toFloat()
+    }
+
+    // Choose any colors you like (just keep them distinct)
+    val colors = listOf(
+        Color(0xFFEF5350), // mood 1
+        Color(0xFFFFA726), // mood 2
+        Color(0xFFFFEE58), // mood 3
+        Color(0xFF66BB6A), // mood 4
+        Color(0xFF42A5F5)  // mood 5
+    )
+
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = "Mood distribution",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.SemiBold
+        )
+
+        Spacer(Modifier.height(12.dp))
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth(),
+            contentAlignment = Alignment.Center
+        ) {
+            Canvas(
+                modifier = Modifier.size(220.dp)
+            ) {
+                val stroke = Stroke(width = 34f, cap = StrokeCap.Round)
+
+                // donut bounds (so it stays a circle)
+                val diameter = size.minDimension
+                val topLeft = androidx.compose.ui.geometry.Offset(
+                    (size.width - diameter) / 2f,
+                    (size.height - diameter) / 2f
+                )
+                val arcSize = Size(diameter, diameter)
+
+                if (total == 0) {
+                    // draw “empty” ring
+                    drawArc(
+                        color = Color.LightGray.copy(alpha = 0.4f),
+                        startAngle = -90f,
+                        sweepAngle = 360f,
+                        useCenter = false,
+                        topLeft = topLeft,
+                        size = arcSize,
+                        style = stroke
+                    )
+                } else {
+                    var startAngle = -90f
+                    for (i in 0..4) {
+                        val sweep = perc[i] * 360f
+                        if (sweep > 0f) {
+                            drawArc(
+                                color = colors[i],
+                                startAngle = startAngle,
+                                sweepAngle = sweep,
+                                useCenter = false,
+                                topLeft = topLeft,
+                                size = arcSize,
+                                style = stroke
+                            )
+                            startAngle += sweep
+                        }
+                    }
+                }
+            }
+
+            // center label
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    text = if (total == 0) "No mood\nlogged" else "$total days",
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                    fontWeight = FontWeight.SemiBold
+                )
+                if (total != 0) {
+                    Text(
+                        text = "this month",
+                        style = MaterialTheme.typography.labelMedium
+                    )
+                }
+            }
+        }
+
+        Spacer(Modifier.height(14.dp))
+
+        // Legend
+        for (i in 0..4) {
+            val percentText = if (total == 0) "0%" else "${(perc[i] * 100).toInt()}%"
+            LegendRow(
+                label = "Mood ${i + 1}",
+                color = colors[i],
+                rightText = "${counts[i]}  ($percentText)"
+            )
+        }
+    }
+}
+
+@Composable
+private fun LegendRow(label: String, color: Color, rightText: String) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 22.dp, vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Canvas(modifier = Modifier.size(12.dp)) {
+            drawCircle(color)
+        }
+        Spacer(Modifier.width(10.dp))
+        Text(label, modifier = Modifier.weight(1f))
+        Text(rightText, fontWeight = FontWeight.Medium)
+    }
+}
+
 
 @Composable
 private fun PredictedMonthChart(
