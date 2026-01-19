@@ -38,6 +38,8 @@ fun AddEntryHeader(
         )
     }
 
+    var backEnabled by remember { mutableStateOf(true) }
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -49,7 +51,12 @@ fun AddEntryHeader(
             contentDescription = "Back",
             modifier = Modifier
                 .size(28.dp)
-                .clickable { onBack() }
+                .clickable(enabled = backEnabled) {
+                    backEnabled = false
+                    onBack()
+                },
+            tint = if (backEnabled) MaterialTheme.colorScheme.onSurface
+            else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
         )
 
         Spacer(modifier = Modifier.width(12.dp))
@@ -60,6 +67,7 @@ fun AddEntryHeader(
         )
     }
 }
+
 
 
 @Composable
