@@ -270,35 +270,35 @@ fun StatisticsPage(navController: NavController) {
                     Spacer(Modifier.height(20.dp))
 
                     // ---------------- CYCLE / PERIOD (UI only for now) ----------------
-                    Text(
-                        text = "Cycle length: $cycleLen days",
-                        style = MaterialTheme.typography.titleLarge,
-                        color = Brown
-                    )
-                    Spacer(Modifier.height(6.dp))
-
-                    Slider(
-                        value = cycleLen.toFloat(),
-                        onValueChange = { profileVm.setCycleLength(it.toInt()) },
-                        valueRange = 15f..60f,
-                        steps = 60 - 15 - 1
-                    )
-
-                    Spacer(Modifier.height(16.dp))
-
-                    Text(
-                        text = "Period length: $periodLen days",
-                        style = MaterialTheme.typography.titleLarge,
-                        color = Brown
-                    )
-                    Spacer(Modifier.height(6.dp))
-
-                    Slider(
-                        value = periodLen.toFloat(),
-                        onValueChange = { profileVm.setPeriodLength(it.toInt()) },
-                        valueRange = 1f..15f,
-                        steps = 15 - 1 - 1
-                    )
+//                    Text(
+//                        text = "Cycle length: $cycleLen days",
+//                        style = MaterialTheme.typography.titleLarge,
+//                        color = Brown
+//                    )
+//                    Spacer(Modifier.height(6.dp))
+//
+//                    Slider(
+//                        value = cycleLen.toFloat(),
+//                        onValueChange = { profileVm.setCycleLength(it.toInt()) },
+//                        valueRange = 15f..60f,
+//                        steps = 60 - 15 - 1
+//                    )
+//
+//                    Spacer(Modifier.height(16.dp))
+//
+//                    Text(
+//                        text = "Period length: $periodLen days",
+//                        style = MaterialTheme.typography.titleLarge,
+//                        color = Brown
+//                    )
+//                    Spacer(Modifier.height(6.dp))
+//
+//                    Slider(
+//                        value = periodLen.toFloat(),
+//                        onValueChange = { profileVm.setPeriodLength(it.toInt()) },
+//                        valueRange = 1f..15f,
+//                        steps = 15 - 1 - 1
+//                    )
 
                     Spacer(Modifier.height(18.dp))
 
