@@ -2,7 +2,9 @@ package com.example.myapplication.ui.screens
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -370,6 +372,7 @@ fun StatisticsPage(navController: NavController) {
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
+                            .background(Softsoftyellow)
                             .padding(20.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
@@ -433,7 +436,7 @@ fun StatisticsPage(navController: NavController) {
                 // Month selector (no card background)
                 Surface(
                     shape = RoundedCornerShape(20.dp),
-                    color = Brown.copy(alpha = 0.1f) // keep this small pill if you want
+                    color = Softsoftyellow
                 ) {
                     Row(
                         modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp),
@@ -654,7 +657,7 @@ private fun PredictionMonthSelector(
 
     Surface(
         shape = RoundedCornerShape(20.dp),
-        color = Brown.copy(alpha = 0.1f)
+        color = Softsoftyellow
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp),
@@ -665,7 +668,13 @@ private fun PredictionMonthSelector(
                 color = if (predIndex == 0) Brown.copy(alpha = 0.3f) else Brown,
                 modifier = Modifier
                     .padding(horizontal = 8.dp)
-                    .clickable(enabled = predIndex != 0) { onPrev() }
+                    .clickable(
+                        enabled = predIndex != 0,
+                        indication = null,
+                        interactionSource = remember { MutableInteractionSource() }
+                    ) {
+                        onPrev()
+                    }
             )
 
             Text(
@@ -679,8 +688,15 @@ private fun PredictionMonthSelector(
                 color = if (predIndex == 2) Brown.copy(alpha = 0.3f) else Brown,
                 modifier = Modifier
                     .padding(horizontal = 8.dp)
-                    .clickable(enabled = predIndex != 2) { onNext() }
+                    .clickable(
+                        enabled = predIndex != 2,
+                        indication = null,
+                        interactionSource = remember { MutableInteractionSource() }
+                    ) {
+                        onNext()
+                    }
             )
+
         }
     }
 }
@@ -712,11 +728,11 @@ fun MoodDonutChart(
 
     // Choose any colors you like (just keep them distinct)
     val colors = listOf(
-        MoodDarkBlue,     // awful
-        MoodBrightBlue,   // bad
-        MoodYellow,       // okay
-        MoodBrightGreen,  // happy
-        MoodDarkGreen     // very happy
+        MoodDarkBlue,
+        MoodBrightBlue,
+        MoodYellow,
+        MoodDarkGreen,
+        MoodBrightGreen
     )
 
     val moodLabels = listOf(
@@ -725,6 +741,14 @@ fun MoodDonutChart(
         "Okay",         // 2
         "Happy",        // 3
         "Very happy"    // 4
+    )
+
+    val moodIcons = listOf(
+        R.drawable.awful,       // 0
+        R.drawable.bad,         // 1
+        R.drawable.okay,        // 2
+        R.drawable.happy,       // 3
+        R.drawable.veryhappy    // 4
     )
 
 
@@ -812,7 +836,7 @@ fun MoodDonutChart(
             val percentText = if (total == 0) "0%" else "${(perc[i] * 100).toInt()}%"
             LegendRow(
                 label = moodLabels[i],
-                color = colors[i],
+                iconRes = moodIcons[i],
                 rightText = "${counts[i]}  ($percentText)"
             )
         }
@@ -820,16 +844,18 @@ fun MoodDonutChart(
 }
 
 @Composable
-private fun LegendRow(label: String, color: Color, rightText: String) {
+private fun LegendRow(label: String, iconRes: Int, rightText: String) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 22.dp, vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Canvas(modifier = Modifier.size(12.dp)) {
-            drawCircle(color)
-        }
+        Image(
+            painter = painterResource(iconRes),
+            contentDescription = label,
+            modifier = Modifier.size(22.dp)
+        )
         Spacer(Modifier.width(10.dp))
         Text(label, modifier = Modifier.weight(1f))
         Text(rightText, fontWeight = FontWeight.Medium)
