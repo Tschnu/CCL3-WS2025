@@ -23,6 +23,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.ui.text.font.FontWeight
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.myapplication.R
@@ -261,6 +262,8 @@ fun RowScope.DayCell(
 
     val date = month.atDay(day)
     val today = LocalDate.now()
+    val isToday = date == today
+
 
     val isFuture = date.isAfter(today)
     val isClickable = !isFuture
@@ -325,7 +328,9 @@ fun RowScope.DayCell(
         Text(
             text = day.toString(),
             style = MaterialTheme.typography.bodyLarge,
-            color = if (isFuture) futureText else Brown
+            color = if (isFuture) futureText else Brown,
+            fontWeight = if (isToday) FontWeight.ExtraBold else FontWeight.Normal,
+
         )
     }
 }
