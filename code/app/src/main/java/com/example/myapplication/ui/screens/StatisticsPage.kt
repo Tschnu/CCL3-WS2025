@@ -883,15 +883,23 @@ private fun MultiAxisLineChart(
         val top = 20f
         val bottom = size.height - 30f
 
+        val leftMax = 4f
+        val rightMax = 3f
+
         fun x(i: Int) = left + (right - left) * i / (count - 1)
-        fun yLeft(v: Float) = bottom - (v.coerceIn(0f, 5f) / 5f) * (bottom - top)
-        fun yRight(v: Float) = bottom - (v.coerceIn(0f, 3f) / 3f) * (bottom - top)
+
+        fun yLeft(v: Float) =
+            bottom - (v.coerceIn(0f, leftMax) / leftMax) * (bottom - top)
+
+        fun yRight(v: Float) =
+            bottom - (v.coerceIn(0f, rightMax) / rightMax) * (bottom - top)
+
 
         drawLine(Color.Black, Offset(left, top), Offset(left, bottom), 3f)
         drawLine(Color.Black, Offset(right, top), Offset(right, bottom), 3f)
         drawLine(Color.Black, Offset(left, bottom), Offset(right, bottom), 3f)
 
-        for (i in 0..5) {
+        for (i in 0..leftMax.toInt()) {   // 0..4
             val y = yLeft(i.toFloat())
             drawLine(Color.Black, Offset(left - 6f, y), Offset(left, y), 2f)
             drawContext.canvas.nativeCanvas.drawText(
@@ -905,7 +913,7 @@ private fun MultiAxisLineChart(
             )
         }
 
-        for (i in 0..3) {
+        for (i in 0..rightMax.toInt()) {  // 0..3
             val y = yRight(i.toFloat())
             drawLine(Color.Black, Offset(right, y), Offset(right + 6f, y), 2f)
             drawContext.canvas.nativeCanvas.drawText(
@@ -918,6 +926,7 @@ private fun MultiAxisLineChart(
                 }
             )
         }
+
 
         fun drawSeries(values: List<Float>, color: Color, rightAxis: Boolean) {
             val path = Path()
