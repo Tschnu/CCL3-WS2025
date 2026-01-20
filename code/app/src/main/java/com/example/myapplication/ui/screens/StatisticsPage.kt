@@ -622,7 +622,10 @@ private fun DailyMetricsChart(
     }
 
     val pain = days.map { (byDate[it]?.painCategory ?: 0).toFloat() }
-    val mood = days.map { (byDate[it]?.moodCategory ?: 0).toFloat() }
+    val mood = days.map {
+        val raw = byDate[it]?.moodCategory ?: 0
+        if(raw in 1..5)(6-raw).toFloat() else 0f
+    }
     val energy = days.map { (byDate[it]?.energyCategory ?: 0).toFloat() }
     val flow = days.map { (byDate[it]?.bloodflowCategory ?: 0).toFloat() }
 
@@ -695,13 +698,13 @@ fun MoodDonutChart(
             val d = Instant.ofEpochMilli(it.date).atZone(zoneId).toLocalDate()
             YearMonth.from(d) == month
         }
-        .mapNotNull { e -> e.moodCategory.takeIf { it in 1..5 } }
+        .mapNotNull { e -> e.moodCategory.takeIf { it in 0..4 } }
 
     val total = moodValues.size
 
     // counts[0] -> mood 1, counts[4] -> mood 5
     val counts = IntArray(5)
-    for (m in moodValues) counts[m - 1]++
+    for (m in moodValues) counts[m]++
 
     val perc = FloatArray(5) { i ->
         if (total == 0) 0f else counts[i].toFloat() / total.toFloat()
@@ -709,19 +712,19 @@ fun MoodDonutChart(
 
     // Choose any colors you like (just keep them distinct)
     val colors = listOf(
-        MoodBrightGreen, // mood 1
-        MoodDarkGreen, // mood 2
-        MoodYellow, // mood 3
-        MoodBrightBlue, // mood 4
-        MoodDarkBlue  // mood 5
+        MoodDarkBlue,     // awful
+        MoodBrightBlue,   // bad
+        MoodYellow,       // okay
+        MoodBrightGreen,  // happy
+        MoodDarkGreen     // very happy
     )
 
     val moodLabels = listOf(
-        "Very happy",
-        "Happy",
-        "Okay",
-        "Bad",
-        "Awful"
+        "Awful",        // 0
+        "Bad",          // 1
+        "Okay",         // 2
+        "Happy",        // 3
+        "Very happy"    // 4
     )
 
 

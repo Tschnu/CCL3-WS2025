@@ -263,7 +263,7 @@ fun MoodBar(
                 modifier = Modifier
                     .size(44.dp)
                     .background(
-                        color = if (index == selectedValue) Color(0xFFEFECE5) else Color.Transparent,
+                        color = if (selectedValue !=-1 && index == selectedValue) Color(0xFFEFECE5) else Color.Transparent,
                         shape = RoundedCornerShape(50)
                     )
                     .clickable { onSelect(index) },

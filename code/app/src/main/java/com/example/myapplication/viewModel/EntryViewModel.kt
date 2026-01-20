@@ -80,7 +80,7 @@ class EntryViewModel(application: Application) : AndroidViewModel(application) {
     private val _energyCategory = MutableStateFlow(0)
     val energyCategory: StateFlow<Int> = _energyCategory
 
-    private val _moodCategory = MutableStateFlow(0)
+    private val _moodCategory = MutableStateFlow(-1)
     val moodCategory: StateFlow<Int> = _moodCategory
 
     private val _journalText = MutableStateFlow("")
