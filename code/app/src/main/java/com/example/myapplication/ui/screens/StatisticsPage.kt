@@ -430,7 +430,64 @@ fun StatisticsPage(navController: NavController) {
                     }
                 }
 
+                Spacer(modifier = Modifier.height(16.dp))
+
+
+                Divider(
+                    color = Brown,
+                    thickness = 2.dp,
+                    modifier = Modifier
+                        .padding(top = 4.dp)
+                        //.fillMaxWidth(0.9f)
+                )
+
+
+                Text(
+                    text = "Analysis",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Brown
+                )
+                Divider(
+                    color = Brown,
+                    thickness = 2.dp,
+                    modifier = Modifier
+                        .padding(top = 4.dp)
+                        //.fillMaxWidth(0.9f)
+                )
+
+
                 // ✅ EVERYTHING BELOW = NO BACKGROUND
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Filter chips
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Filters:",
+                        color = Brown,
+                        fontWeight = FontWeight.ExtraBold,
+                        modifier = Modifier.padding(horizontal = 8.dp)
+                    )
+
+                    LineToggleChip("Blood", RedDark, showBloodflow) {
+                        showBloodflow = !showBloodflow
+                    }
+                    LineToggleChip("Pain", YellowDark, showPain) {
+                        showPain = !showPain
+                    }
+                    LineToggleChip("Mood", BlueDark, showMood) {
+                        showMood = !showMood
+                    }
+                    LineToggleChip("Energy", GreenDark, showEnergy) {
+                        showEnergy = !showEnergy
+                    }
+                }
+
+
                 Spacer(modifier = Modifier.height(24.dp))
 
                 // Month selector (no card background)
@@ -476,20 +533,7 @@ fun StatisticsPage(navController: NavController) {
 
                 Spacer(modifier = Modifier.height(20.dp))
 
-                // Filter chips
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    LineToggleChip("Blood", RedDark, showBloodflow) {
-                        showBloodflow = !showBloodflow
-                    }
-                    LineToggleChip("Pain", YellowDark, showPain) { showPain = !showPain }
-                    LineToggleChip("Mood", BlueDark, showMood) { showMood = !showMood }
-                    LineToggleChip("Energy", GreenDark, showEnergy) { showEnergy = !showEnergy }
-                }
 
-                Spacer(modifier = Modifier.height(16.dp))
 
                 // Real chart (no background)
                 DailyMetricsChart(
