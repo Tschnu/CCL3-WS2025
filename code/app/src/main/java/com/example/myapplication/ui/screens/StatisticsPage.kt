@@ -447,7 +447,10 @@ fun StatisticsPage(navController: NavController) {
                             color = Brown,
                             modifier = Modifier
                                 .padding(horizontal = 8.dp)
-                                .clickable { selectedMonth = selectedMonth.minusMonths(1) }
+                                .clickable(
+                                    indication = null,
+                                    interactionSource = remember { MutableInteractionSource() }
+                                )  { selectedMonth = selectedMonth.minusMonths(1) }
                         )
 
                         Text(
@@ -463,7 +466,10 @@ fun StatisticsPage(navController: NavController) {
                             color = Brown,
                             modifier = Modifier
                                 .padding(horizontal = 8.dp)
-                                .clickable { selectedMonth = selectedMonth.plusMonths(1) }
+                                .clickable(
+                                    indication = null,
+                                    interactionSource = remember { MutableInteractionSource() }
+                                )  { selectedMonth = selectedMonth.plusMonths(1) }
                         )
                     }
                 }
