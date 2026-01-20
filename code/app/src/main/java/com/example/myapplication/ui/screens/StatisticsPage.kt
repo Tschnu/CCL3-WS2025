@@ -716,6 +716,15 @@ fun MoodDonutChart(
         MoodDarkBlue  // mood 5
     )
 
+    val moodLabels = listOf(
+        "Very happy",
+        "Happy",
+        "Okay",
+        "Bad",
+        "Awful"
+    )
+
+
     Column(
         modifier = modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -799,7 +808,7 @@ fun MoodDonutChart(
         for (i in 0..4) {
             val percentText = if (total == 0) "0%" else "${(perc[i] * 100).toInt()}%"
             LegendRow(
-                label = "Mood ${i + 1}",
+                label = moodLabels[i],
                 color = colors[i],
                 rightText = "${counts[i]}  ($percentText)"
             )
