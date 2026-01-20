@@ -46,6 +46,11 @@ import java.time.Instant
 import java.time.YearMonth
 import java.time.ZoneId
 import androidx.compose.ui.geometry.Size
+import com.example.myapplication.ui.theme.MoodBrightBlue
+import com.example.myapplication.ui.theme.MoodBrightGreen
+import com.example.myapplication.ui.theme.MoodDarkBlue
+import com.example.myapplication.ui.theme.MoodDarkGreen
+import com.example.myapplication.ui.theme.MoodYellow
 
 
 @Composable
@@ -704,11 +709,11 @@ fun MoodDonutChart(
 
     // Choose any colors you like (just keep them distinct)
     val colors = listOf(
-        Color(0xFFEF5350), // mood 1
-        Color(0xFFFFA726), // mood 2
-        Color(0xFFFFEE58), // mood 3
-        Color(0xFF66BB6A), // mood 4
-        Color(0xFF42A5F5)  // mood 5
+        MoodBrightGreen, // mood 1
+        MoodDarkGreen, // mood 2
+        MoodYellow, // mood 3
+        MoodBrightBlue, // mood 4
+        MoodDarkBlue  // mood 5
     )
 
     Column(
