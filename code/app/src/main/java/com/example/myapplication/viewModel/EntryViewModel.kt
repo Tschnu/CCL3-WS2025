@@ -142,7 +142,6 @@ class EntryViewModel(application: Application) : AndroidViewModel(application) {
     // All entries
     // ----------------------------
     private val _allEntries = MutableStateFlow<List<DailyEntryEntity>>(emptyList())
-    val allEntries: StateFlow<List<DailyEntryEntity>> = _allEntries
 
     init {
         viewModelScope.launch {
