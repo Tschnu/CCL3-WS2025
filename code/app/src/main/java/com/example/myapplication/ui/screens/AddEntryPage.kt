@@ -10,6 +10,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -62,7 +63,7 @@ fun AddEntryHeader(
         Spacer(modifier = Modifier.width(12.dp))
 
         Text(
-            text = "Add entry for $formattedDate",
+            text = "Entry for $formattedDate",
             style = MaterialTheme.typography.titleLarge
         )
     }
@@ -77,6 +78,8 @@ fun AddEntryPage(
     onNavigateBack: () -> Unit
 ) {
     val localDate = remember(date) { LocalDate.parse(date) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
+
 
     LaunchedEffect(localDate) {
         viewModel.loadEntryForDate(localDate)
@@ -209,39 +212,103 @@ fun AddEntryPage(
         )
         Spacer(Modifier.height(16.dp))
 
-        Button(
-            onClick = {
-                viewModel.saveEntry()
-                onNavigateBack()
-            },
+        val hasInput =
+            journal.isNotBlank()
+                    || bloodflow != 0
+                    || pain != 0
+                    || energy != -1
+                    || mood != -1
+
+        Spacer(Modifier.height(16.dp))
+
+        Row(
             modifier = Modifier
-                .align(Alignment.CenterHorizontally)
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(text = "Save", color = Softsoftyellow)
-        }
-        if (journal.isNotBlank()
-            || bloodflow != 0
-            || pain != 0
-            || energy != -1
-            || mood != -1
-        ) {
+            // LEFT: Trash (only show if there is something to delete)
+            if (hasInput) {
+                IconButton(
+                    onClick = { showDeleteDialog = true }
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = "Delete entry",
+                        tint = Brown
+                    )
+                }
+            } else {
+                // keeps spacing so Save stays on the right
+                Spacer(Modifier.size(48.dp))
+            }
+
+            // RIGHT: Save
             Button(
                 onClick = {
-                    viewModel.deleteCurrentEntry()
+                    viewModel.saveEntry()
                     onNavigateBack()
-                },
-                colors = ButtonDefaults.buttonColors(
-                    contentColor = RedDark
-                ),
-                modifier = Modifier
-                    .align(Alignment.CenterHorizontally)
+                }
             ) {
-                Text(text = "Delete entry", color = Softsoftyellow)
+                Text(text = "Save", color = Softsoftyellow)
             }
         }
 
     }
+
+
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            containerColor = Softsoftyellow, // 👈 dialog background
+            shape = RoundedCornerShape(20.dp),
+            title = {
+                Text(
+                    text = "Delete entry?",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = Brown
+                )
+            },
+            text = {
+                Text(
+                    text = "Are you sure you want to delete this entry? This can’t be undone.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Brown
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showDeleteDialog = false
+                        viewModel.deleteCurrentEntry()
+                        onNavigateBack()
+                    }
+                ) {
+                    Text(
+                        "Delete",
+                        style = MaterialTheme.typography.labelLarge,
+                        color = RedDark
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { showDeleteDialog = false }
+                ) {
+                    Text(
+                        "Cancel",
+                        style = MaterialTheme.typography.labelLarge,
+                        color = Brown
+                    )
+                }
+            }
+        )
+    }
+
+
+
 }
+
 
 
 @Composable
