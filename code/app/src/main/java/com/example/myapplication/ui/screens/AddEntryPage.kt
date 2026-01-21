@@ -93,14 +93,22 @@ fun AddEntryPage(
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
             .padding(24.dp),
-        verticalArrangement = Arrangement.spacedBy(20.dp)
+//        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         AddEntryHeader(
             date = localDate,
             onBack = onNavigateBack
         )
 
+        Spacer(Modifier.height(16.dp))
+
+        HorizontalDivider(color = Brown, thickness = 2.dp)
+
         SectionTitle("Blood Flow")
+        HorizontalDivider(color = Brown, thickness = 2.dp)
+
+        Spacer(Modifier.height(16.dp))
+
         ValueImageRow(
             items = listOf(
                 R.drawable.nothing to 0,
@@ -112,7 +120,16 @@ fun AddEntryPage(
             onSelect = viewModel::setBloodflowCategory
         )
 
+
+
+        Spacer(Modifier.height(16.dp))
+
+        HorizontalDivider(color = Brown, thickness = 2.dp)
+
         SectionTitle("Pain")
+        HorizontalDivider(color = Brown, thickness = 2.dp)
+
+        Spacer(Modifier.height(16.dp))
         ValueImageRow(
             items = listOf(
                 R.drawable.nothing to 0,
@@ -125,7 +142,14 @@ fun AddEntryPage(
             onSelect = viewModel::setPainCategory
         )
 
+        Spacer(Modifier.height(16.dp))
+
+        HorizontalDivider(color = Brown, thickness = 2.dp)
+
         SectionTitle("Energy Level")
+        HorizontalDivider(color = Brown, thickness = 2.dp)
+
+        Spacer(Modifier.height(16.dp))
         ValueImageRow(
             items = listOf(
                 R.drawable.no_energy to 0,
@@ -138,20 +162,36 @@ fun AddEntryPage(
             onSelect = viewModel::setEnergyCategory
         )
 
+        Spacer(Modifier.height(16.dp))
+
+        HorizontalDivider(color = Brown, thickness = 2.dp)
+
         SectionTitle("Mood")
-        MoodBar(
-            moods = listOf(
-                R.drawable.awful,
-                R.drawable.bad,
-                R.drawable.okay,
-                R.drawable.happy,
-                R.drawable.veryhappy
+        HorizontalDivider(color = Brown, thickness = 2.dp)
+
+        Spacer(Modifier.height(16.dp))
+
+        MoodImageRow(
+            items = listOf(
+                R.drawable.awful to 0,
+                R.drawable.bad to 1,
+                R.drawable.okay to 2,
+                R.drawable.happy to 3,
+                R.drawable.veryhappy to 4
             ),
             selectedValue = mood,
             onSelect = viewModel::setMoodCategory
         )
 
+
+        Spacer(Modifier.height(16.dp))
+
+        HorizontalDivider(color = Brown, thickness = 2.dp)
+
         SectionTitle("Journal")
+        HorizontalDivider(color = Brown, thickness = 2.dp)
+
+        Spacer(Modifier.height(16.dp))
         OutlinedTextField(
             value = journal,
             onValueChange = viewModel::setJournalText,
@@ -167,6 +207,7 @@ fun AddEntryPage(
             placeholder = { Text("How do you feel today?")},
             shape = RoundedCornerShape(12.dp)
         )
+        Spacer(Modifier.height(16.dp))
 
         Button(
             onClick = {
@@ -181,8 +222,8 @@ fun AddEntryPage(
         if (journal.isNotBlank()
             || bloodflow != 0
             || pain != 0
-            || energy != 0
-            || mood != 0
+            || energy != -1
+            || mood != -1
         ) {
             Button(
                 onClick = {
@@ -202,11 +243,46 @@ fun AddEntryPage(
     }
 }
 
+
+@Composable
+fun MoodImageRow(
+    items: List<Pair<Int, Int>>,
+    selectedValue: Int,
+    onSelect: (Int) -> Unit
+) {
+    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        items.forEach { (imageRes, value) ->
+            Box(
+                modifier = Modifier
+                    .size(56.dp) // SAME size as other categories
+                    .background(Color.White, RoundedCornerShape(8.dp))
+                    .border(
+                        width = 2.dp,
+                        color = if (value == selectedValue) Brown else Color.LightGray,
+                        shape = RoundedCornerShape(8.dp)
+                    )
+                    .clickable { onSelect(value) },
+                contentAlignment = Alignment.Center
+            ) {
+                Image(
+                    painter = painterResource(imageRes),
+                    contentDescription = null,
+                    modifier = Modifier.size(32.dp) // 👈 SMALLER icon
+                )
+            }
+        }
+    }
+}
+
+
+
+
 @Composable
 fun SectionTitle(text: String) {
     Text(
         text = text,
-        style = MaterialTheme.typography.labelLarge
+        style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(vertical = 0.dp)
     )
 }
 

@@ -77,7 +77,7 @@ class EntryViewModel(application: Application) : AndroidViewModel(application) {
     private val _painCategory = MutableStateFlow(0)
     val painCategory: StateFlow<Int> = _painCategory
 
-    private val _energyCategory = MutableStateFlow(0)
+    private val _energyCategory = MutableStateFlow(-1)
     val energyCategory: StateFlow<Int> = _energyCategory
 
     private val _moodCategory = MutableStateFlow(-1)
