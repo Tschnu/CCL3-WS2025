@@ -349,7 +349,7 @@ fun SectionTitle(text: String) {
     Text(
         text = text,
         style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(vertical = 0.dp)
+                modifier = Modifier.padding(vertical = 0.dp, horizontal = 4.dp)
     )
 }
 
