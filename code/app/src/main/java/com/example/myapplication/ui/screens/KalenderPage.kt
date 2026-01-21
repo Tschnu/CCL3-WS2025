@@ -23,6 +23,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.text.font.FontWeight
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
@@ -30,7 +33,6 @@ import com.example.myapplication.R
 import com.example.myapplication.ui.navigation.Screen
 import com.example.myapplication.ui.theme.Brown
 import com.example.myapplication.ui.theme.Softsoftyellow
-import com.example.myapplication.ui.theme.YellowStrong
 import com.example.myapplication.viewModel.EntryViewModel
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -38,6 +40,8 @@ import java.time.YearMonth
 import java.time.ZoneId
 import java.time.format.TextStyle
 import java.util.Locale
+import kotlinx.coroutines.launch
+
 
 @Composable
 fun KalenderPage(navController: NavController) {
@@ -71,34 +75,61 @@ fun KalenderPage(navController: NavController) {
 
     val listState = rememberLazyListState(initialFirstVisibleItemIndex = monthsBefore)
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-    ) {
-        CalendarHeader()
+    val scope = rememberCoroutineScope()
+    val currentMonthIndex = remember(monthsBefore) { monthsBefore }
 
-        WeekDayHeader()
+    val isCurrentMonthVisible by remember {
+        derivedStateOf {
+            listState.layoutInfo.visibleItemsInfo.any { it.index == currentMonthIndex }
+        }
+    }
 
-        Spacer(modifier = Modifier.height(10.dp))
+    Box(modifier = Modifier.fillMaxSize()) {
 
-        LazyColumn(
-            state = listState,
-            modifier = Modifier
-                .weight(1f)
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(32.dp)
-        ) {
-            items(months) { month ->
-                MonthCalendar(
-                    month = month,
-                    navController = navController,
-                    bloodflowMap = bloodflowMap,
-                    predictedMap = predictedBloodflowMap
-                )
+        // ✅ Your normal page content
+        Column(modifier = Modifier.fillMaxSize()) {
+
+            CalendarHeader()
+            WeekDayHeader()
+            Spacer(modifier = Modifier.height(10.dp))
+
+            LazyColumn(
+                state = listState,
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(horizontal = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(32.dp)
+            ) {
+                items(months) { month ->
+                    MonthCalendar(
+                        month = month,
+                        navController = navController,
+                        bloodflowMap = bloodflowMap,
+                        predictedMap = predictedBloodflowMap
+                    )
+                }
+            }
+        }
+
+        // ✅ Floating "Today" button (only when current month is NOT visible)
+        if (!isCurrentMonthVisible) {
+            androidx.compose.material3.Button(
+                onClick = {
+                    scope.launch {
+                        listState.animateScrollToItem(currentMonthIndex)
+                    }
+                },
+                colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = Brown),
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 12.dp)
+            ) {
+                Text("Today", color = Softsoftyellow, fontWeight = FontWeight.SemiBold)
             }
         }
     }
 }
+
 
 @Composable
 fun CalendarHeader() {
@@ -295,7 +326,12 @@ fun RowScope.DayCell(
             .then(futureOutline)
             .then(
                 if (hasRealPeriod) {
-                    Modifier.border(width = 2.dp, color = Color.Red, shape = cellShape)
+                    Modifier.border(2.dp, Color.Red, cellShape)
+                } else Modifier
+            )
+            .then(
+                if (isToday) {
+                    Modifier.border(2.dp, Brown, cellShape)
                 } else Modifier
             )
             .then(
@@ -304,7 +340,8 @@ fun RowScope.DayCell(
                 } else Modifier
             ),
         contentAlignment = Alignment.Center
-    ) {
+    )
+    {
         flowToShow?.let { value ->
             val imageRes = when (value) {
                 1 -> R.drawable.little_blood_full
@@ -330,6 +367,7 @@ fun RowScope.DayCell(
             style = MaterialTheme.typography.bodyLarge,
             color = if (isFuture) futureText else Brown,
             fontWeight = if (isToday) FontWeight.ExtraBold else FontWeight.Normal,
+
 
         )
     }

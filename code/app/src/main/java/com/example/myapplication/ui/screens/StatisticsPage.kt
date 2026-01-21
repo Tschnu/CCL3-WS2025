@@ -47,6 +47,7 @@ import java.time.Instant
 import java.time.YearMonth
 import java.time.ZoneId
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.RectangleShape
 import com.example.myapplication.ui.theme.MoodBrightBlue
 import com.example.myapplication.ui.theme.MoodBrightGreen
 import com.example.myapplication.ui.theme.MoodDarkBlue
@@ -121,7 +122,12 @@ fun StatisticsPage(navController: NavController) {
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
-            ModalDrawerSheet(modifier = Modifier.width(280.dp)) {
+            ModalDrawerSheet(
+                modifier = Modifier.width(280.dp),
+                drawerContainerColor = Color.White,
+                drawerShape = RectangleShape
+            )
+            {
 
                 Column(
                     modifier = Modifier
@@ -130,12 +136,12 @@ fun StatisticsPage(navController: NavController) {
                 ) {
 
                     Text(
-                        text = "Settings",
+                        text = "Settings of",
                         style = MaterialTheme.typography.headlineSmall,
                         color = Brown
                     )
 
-                    Spacer(Modifier.height(14.dp))
+                    Spacer(Modifier.height(8.dp))
 
                     // header row
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -156,16 +162,24 @@ fun StatisticsPage(navController: NavController) {
                     }
 
                     Spacer(Modifier.height(18.dp))
-                    HorizontalDivider(color = Brown.copy(alpha = 0.3f))
+                    HorizontalDivider(color = Brown, thickness = 2.dp)
                     Spacer(Modifier.height(18.dp))
 
                     // ---------------- NAME (click pen to edit) ----------------
                     Text(
-                        text = "Name",
-                        style = MaterialTheme.typography.titleLarge,
+                        text = "Personal Settings",
+                        style = MaterialTheme.typography.titleMedium,
                         color = Brown
                     )
+
                     Spacer(Modifier.height(8.dp))
+
+                    Text(
+                        text = "Name:",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = Brown
+                    )
+
 
                     if (!isEditingName) {
                         Row(
@@ -195,7 +209,7 @@ fun StatisticsPage(navController: NavController) {
                         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                             Button(
                                 onClick = {
-                                    profileVm.setName(nameInput.trim().ifBlank { "there" })
+                                    profileVm.setName(nameInput.trim().ifBlank { "Your Name" })
                                     isEditingName = false
                                 },
                                 colors = ButtonDefaults.buttonColors(containerColor = Brown),
@@ -214,7 +228,7 @@ fun StatisticsPage(navController: NavController) {
                     // ---------------- FLOWER (click pen to expand) ----------------
                     Text(
                         text = "Profile picture",
-                        style = MaterialTheme.typography.titleLarge,
+                        style = MaterialTheme.typography.bodyLarge,
                         color = Brown
                     )
                     Spacer(Modifier.height(8.dp))
@@ -225,14 +239,14 @@ fun StatisticsPage(navController: NavController) {
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Image(
-                                painter = painterResource(id = currentFlowerRes),
-                                contentDescription = "Current flower",
-                                modifier = Modifier.size(36.dp)
-                            )
-                            Spacer(Modifier.width(10.dp))
+//                            Image(
+//                                painter = painterResource(id = currentFlowerRes),
+//                                contentDescription = "Current flower",
+//                                modifier = Modifier.size(36.dp)
+//                            )
+//                            Spacer(Modifier.width(10.dp))
                             Text(
-                                text = "Choose flower",
+                                text = "Choose flower image",
                                 style = MaterialTheme.typography.titleMedium,
                                 color = Brown
                             )
@@ -276,7 +290,30 @@ fun StatisticsPage(navController: NavController) {
                         }
                     }
 
-                    Spacer(Modifier.height(20.dp))
+//                    Spacer(Modifier.height(20.dp))
+
+                    val entryVm: EntryViewModel = viewModel()
+
+
+                    Spacer(Modifier.height(18.dp))
+
+                    Spacer(Modifier.height(18.dp))
+                    HorizontalDivider(color = Brown, thickness = 2.dp)
+                    Spacer(Modifier.height(18.dp))
+
+                    Text(
+                        text = "Here will be date realted settings",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = Brown
+                    )
+
+                    Button(onClick = { entryVm.deleteAllData() }) {
+                        Text(
+                            "Delete all data",
+                            color= Softsoftyellow)
+
+                    }
+
 
                     // ---------------- CYCLE / PERIOD (UI only for now) ----------------
 //                    Text(
@@ -311,13 +348,7 @@ fun StatisticsPage(navController: NavController) {
 
                     Spacer(Modifier.height(18.dp))
 
-                    Button(
-                        onClick = { scope.launch { drawerState.close() } },
-                        colors = ButtonDefaults.buttonColors(containerColor = Brown),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text("Close", color = Softsoftyellow)
-                    }
+
                 }
             }
         }
@@ -362,7 +393,7 @@ fun StatisticsPage(navController: NavController) {
 
                 Spacer(modifier = Modifier.height(18.dp))
 
-                // ✅ CARD: Journal Button + Averages only
+                //CARD: Journal Button + Averages only
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(20.dp),
@@ -375,6 +406,30 @@ fun StatisticsPage(navController: NavController) {
                             .padding(20.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
+
+
+
+                        Spacer(modifier = Modifier.height(8.dp))
+                        HorizontalDivider(color = Brown, thickness = 2.dp)
+
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "Averages in days",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = Brown
+                        )
+
+                        Spacer(modifier = Modifier.height(4.dp))
+                        HorizontalDivider(color = Brown, thickness = 2.dp)
+
+                        Spacer(modifier = Modifier.height(18.dp))
+                        StatRow("Cycle length", "${stats.avgCycleDays}")
+                        Spacer(modifier = Modifier.height(14.dp))
+                        StatRow("Average Period", "${stats.avgPeriodDays}")
+
+
+                        Spacer(modifier = Modifier.height(16.dp))
 
                         // ---- JOURNAL BUTTON ----
                         Button(
@@ -408,24 +463,7 @@ fun StatisticsPage(navController: NavController) {
                             }
                         }
 
-                        Spacer(modifier = Modifier.height(16.dp))
-                        HorizontalDivider(color = Brown, thickness = 2.dp)
 
-                        Spacer(modifier = Modifier.height(10.dp))
-                        Text(
-                            text = "Averages in days",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.SemiBold,
-                            color = Brown
-                        )
-
-                        Spacer(modifier = Modifier.height(10.dp))
-                        HorizontalDivider(color = Brown, thickness = 2.dp)
-
-                        Spacer(modifier = Modifier.height(18.dp))
-                        StatRow("Cycle length", "${stats.avgCycleDays}")
-                        Spacer(modifier = Modifier.height(14.dp))
-                        StatRow("Average Period", "${stats.avgPeriodDays}")
                     }
                 }
 
@@ -456,7 +494,7 @@ fun StatisticsPage(navController: NavController) {
                 )
 
 
-                // ✅ EVERYTHING BELOW = NO BACKGROUND
+                // EVERYTHING BELOW = NO BACKGROUND
                 Spacer(modifier = Modifier.height(16.dp))
 
                 // Filter chips

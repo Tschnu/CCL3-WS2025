@@ -53,7 +53,7 @@ fun BottomBar(navController: NavController) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 BottomNavItem(
-                    label = "Kalender",
+                    label = "Calender",
                     selected = onHome,
                     selectedBg = selectedYellow,
                     selectedLabelColor = selectedYellow,

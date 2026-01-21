@@ -1,5 +1,5 @@
 package com.example.myapplication.domain
-
+// this guy is basically the calculator for our period prediction stuff
 import com.example.myapplication.db.dailyEntry.DailyEntryEntity
 import java.time.Instant
 import java.time.LocalDate
@@ -10,95 +10,76 @@ import kotlin.math.roundToInt
 
 object PeriodForecast {
 
-    // fallback if we can’t learn a pattern yet (starts heavy)
-    private val fallbackPattern = listOf(3, 3, 2, 2, 1)
+    private val fallbackPattern = listOf(3, 3, 2, 2, 1) // if smth goes wrong or no input it takes this base pattern of bleeding
 
-    /**
-     * entriesByDate: LocalDate -> bloodflow (0 none, 1 light, 2 medium, 3 heavy)
-     * Predicts bleeding days only within rangeStart..rangeEnd], and only after "today".
-     *
-     * IMPORTANT: returns EMPTY map if user has never logged a period start.
-     */
+    // basic blood flow prediction calculator
     fun predictFutureFlowInRange(
         entriesByDate: Map<LocalDate, Int>,
         rangeStart: LocalDate,
         rangeEnd: LocalDate,
         today: LocalDate = LocalDate.now(),
-        defaultCycleDays: Int = 28,
-        maxCycles: Int = 3
+        defaultCycleDays: Int = 28, // fallback for period length in case there isn't enough input
+        maxCycles: Int = 3 // how many cycle our calculator guy takes for predictions
     ): Map<LocalDate, Int> {
 
         if (entriesByDate.isEmpty()) return emptyMap()
-
-        // ------------------------------------------------------------
-        // 1) Only use last 3 months
-        // ------------------------------------------------------------
-        val windowStart = today.minusMonths(3)
+        val windowStart = today.minusMonths(3) // here it tells i dont care about any other cycles than the last 3
 
         val recent = entriesByDate
             .filterKeys { d -> !d.isBefore(windowStart) && !d.isAfter(today) }
 
         if (recent.isEmpty()) return emptyMap()
 
-        val sortedDays = recent.keys.sorted()
+        val sortedDays = recent.keys.sorted() // here is our little sorting guy who makes sure our dates are in the right order
 
-        // ------------------------------------------------------------
-        // 2) Detect ALL period starts in last 3 months
-        // ------------------------------------------------------------
+
+        // Detects period start of existing periods
         val periodStarts = mutableListOf<LocalDate>()
         for (d in sortedDays) {
             val bleedToday = (entriesByDate[d] ?: 0) > 0
             if (!bleedToday) continue
-
-            val bleedYesterday = (entriesByDate[d.minusDays(1)] ?: 0) > 0
-
-
-            val isToday = d == today
+            val bleedYesterday = (entriesByDate[d.minusDays(1)] ?: 0) > 0 // if yesterday no bleeding but today yes must mean there is a start
+            val isToday = d == today // not use today for calculation because today could still be very likely changed due to mistake from user
 
             if (!bleedYesterday && !isToday) {
-                periodStarts.add(d)
+                periodStarts.add(d) // -> rule for what means period stated //TODO ask why help
             }
         }
+        if (periodStarts.isEmpty()) return emptyMap() // if there is nothing of input there can be predictions duh
 
+        val lastStart = periodStarts.last() // anchor point for prediction next one
 
-        if (periodStarts.isEmpty()) return emptyMap()
-
-        val lastStart = periodStarts.last()
-
-        // ------------------------------------------------------------
-        // 3) Average cycle length from last cycles
-        // ------------------------------------------------------------
+        // zips period starts together which are like next to each other to find out cycle length. filters out weird lenghts as well tho
         val diffs = periodStarts
             .zipWithNext { a, b -> ChronoUnit.DAYS.between(a, b).toInt() }
             .filter { it in 15..60 }
             .takeLast(maxCycles)
 
         val cycleDays = if (diffs.isNotEmpty()) {
-            diffs.average().roundToInt().coerceIn(21, 40)
+            diffs.average().roundToInt().coerceIn(21, 40) // we basically discriminate against people with off periods here but that makes it better for forgetful people
         } else {
             defaultCycleDays
         }
 
-        // ------------------------------------------------------------
-        // 4) Learn AVERAGE bleeding pattern (day-by-day)
-        // ------------------------------------------------------------
-        val flowBuckets = mutableListOf<MutableList<Int>>()
+
+        // learns bleeding patterns?
+        val flowBuckets = mutableListOf<MutableList<Int>>() // this makes buckets for each bleeding cycle day to sort stuff into
 
         fun ensureSize(i: Int) {
             while (flowBuckets.size <= i) {
-                flowBuckets.add(mutableListOf())
+                flowBuckets.add(mutableListOf()) // makes more buckets if not enough
             }
         }
 
         for (start in periodStarts) {
-            var d = start
-            var idx = 0
+            var d = start // d is current day we ar at
+            var idx = 0 // what period day it is starting from 0 which means cycle start
 
-            while ((recent[d] ?: 0) > 0) {
+            while ((recent[d] ?: 0) > 0) { // that my is responsible for keeping the cycle going TODO make him do that in ui
                 ensureSize(idx)
-                flowBuckets[idx].add(recent[d] ?: 0)
+                flowBuckets[idx].add(recent[d] ?: 0) // stores bleeding into correct bucket
 
-                d = d.plusDays(1)
+                d = d.plusDays(1) // here it adds to period index
                 idx++
                 if (idx >= 10) break
             }
@@ -106,25 +87,27 @@ object PeriodForecast {
 
         val averagedPattern = flowBuckets.map { bucket ->
             bucket.average().roundToInt().coerceIn(0, 3)
-        }
+        } // forces bucket to become actual numbers of averages of all buckets
 
-        val pattern = if (averagedPattern.isNotEmpty()) {
+        val pattern = if (averagedPattern.isNotEmpty()) { // here hopefully i now knows what it does
             averagedPattern
         } else {
             fallbackPattern
         }
 
-        // ------------------------------------------------------------
-        // 5) Generate future predictions
-        // ------------------------------------------------------------
-        val result = mutableMapOf<LocalDate, Int>()
-        var nextStart = lastStart.plusDays(cycleDays.toLong())
+        // TODO this was suggested why?
+        //val pattern = averagedPattern.ifEmpty { fallbackPattern }
+
+
+        // here we predict the future
+        val result = mutableMapOf<LocalDate, Int>() // list of dates and flow
+        var nextStart = lastStart.plusDays(cycleDays.toLong()) // adding stuff together to get next start date
 
         while (!nextStart.isAfter(rangeEnd)) {
             pattern.forEachIndexed { i, flow ->
                 val day = nextStart.plusDays(i.toLong())
                 if (
-                    day.isAfter(today) &&
+                    day.isAfter(today) && // TODO mabe we do need predictions atm that turn into cycle then
                     !day.isAfter(rangeEnd) &&
                     !day.isBefore(rangeStart)
                 ) {
@@ -142,7 +125,7 @@ object PeriodForecast {
     // 🧮 PERIOD STATISTICS (used by StatisticsPage)
     // ------------------------------------------------------------------------
 
-    data class PeriodStats(
+    data class PeriodStats(         //TODO shouldnt this be a seperate file can w ejust ahve dataclasses in here?
         val avgCycleDays: Int,     // ALWAYS has a value (defaults to 28)
         val avgPeriodDays: Int,    // ALWAYS has a value (defaults to fallbackPattern.size)
         val cyclesCount: Int,

@@ -296,4 +296,12 @@ class EntryViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+
+    fun deleteAllData() {
+        viewModelScope.launch {
+            dao.deleteAllEntries()
+        }
+    }
+
+
 }

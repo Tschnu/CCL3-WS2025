@@ -2,7 +2,9 @@ package com.example.myapplication.viewModel
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.myapplication.db.dailyEntry.DailyEntryDao
 import com.example.myapplication.db.profile.ProfileDatabase
 import com.example.myapplication.db.profile.ProfileEntity
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -59,6 +61,17 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
         val safeDays = days.coerceIn(1, 15)
         viewModelScope.launch {
             dao.insertProfile(current.copy(periodLength = safeDays))
+        }
+    }
+
+    class EntryViewModel(
+        private val dao: DailyEntryDao
+    ) : ViewModel() {
+
+        fun deleteAllData() {
+            viewModelScope.launch {
+                dao.deleteAllEntries()
+            }
         }
     }
 }

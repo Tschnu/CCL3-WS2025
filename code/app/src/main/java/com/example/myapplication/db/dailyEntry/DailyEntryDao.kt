@@ -11,6 +11,8 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface DailyEntryDao {
 
+
+
     @Insert(onConflict = OnConflictStrategy.Companion.REPLACE)
     suspend fun insertEntry(entry: DailyEntryEntity)
 
@@ -35,4 +37,9 @@ interface DailyEntryDao {
 
     @Query("SELECT * FROM dailyEntry Where journalText IS NOT NULL AND journalText != '' ORDER BY date DESC")
     fun getJournalEntries(): Flow<List<DailyEntryEntity>>
+
+
+
+    @Query("DELETE FROM dailyEntry")
+    suspend fun deleteAllEntries()
 }
