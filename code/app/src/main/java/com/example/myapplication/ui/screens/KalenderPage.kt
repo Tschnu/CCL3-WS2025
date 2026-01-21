@@ -17,7 +17,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -25,14 +24,19 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.material3.Button
-import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.ButtonDefaults.buttonColors
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.mutableStateSetOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
@@ -97,15 +101,10 @@ fun KalenderPage(navController: NavController) {
 
     Box(modifier = Modifier.fillMaxSize()) {
 
-        // ✅ Your normal page content
         Column(modifier = Modifier.fillMaxSize()) {
 
             CalendarHeader(
-                selectionMode = selectionMode,
-                onFlowerClick = {
-                    selectionMode = !selectionMode
-                    if (!selectionMode) selectedDates.clear()
-                }
+                selectionMode = selectionMode
             )
 
             if (selectionMode && selectedDates.isNotEmpty()) {
@@ -117,7 +116,7 @@ fun KalenderPage(navController: NavController) {
                 ) {
                     Button(
                         onClick = {
-                            entryViewModel.savePeriodDays(selectedDates.toList())
+                            entryViewModel.togglePeriodDays(selectedDates.toList())
                             selectedDates.clear()
                             selectionMode = false
                         },
@@ -126,7 +125,7 @@ fun KalenderPage(navController: NavController) {
                             containerColor = Brown
                         )
                     ) {
-                        Text(text = "Period",
+                        Text(text = "Save",
                             color = Softsoftyellow)
                     }
 
@@ -166,15 +165,14 @@ fun KalenderPage(navController: NavController) {
             }
         }
 
-        // ✅ Floating "Today" button (only when current month is NOT visible)
         if (!isCurrentMonthVisible) {
-            androidx.compose.material3.Button(
+            Button(
                 onClick = {
                     scope.launch {
                         listState.animateScrollToItem(currentMonthIndex)
                     }
                 },
-                colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = Brown),
+                colors = buttonColors(containerColor = Brown),
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .padding(bottom = 12.dp)
@@ -182,14 +180,36 @@ fun KalenderPage(navController: NavController) {
                 Text("Today", color = Softsoftyellow, fontWeight = FontWeight.SemiBold)
             }
         }
+
+        Image(
+            painter = painterResource(R.drawable.flower_red_single),
+            contentDescription = "Select period days",
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(16.dp)
+                .size(48.dp)
+                .background(
+                    color = Softsoftyellow ,
+                    shape = RoundedCornerShape(30)
+                )
+                .clickable {
+                    selectionMode = !selectionMode
+                    if (!selectionMode) selectedDates.clear()
+                }
+                .border(
+                    width = if (selectionMode) 2.dp else 1.dp,
+                    color = if (selectionMode) Color.Red else Brown,
+                    shape = RoundedCornerShape(30)
+                )
+                .padding(3.dp)
+        )
     }
 }
 
 
 @Composable
 fun CalendarHeader(
-    selectionMode: Boolean,
-    onFlowerClick: () -> Unit
+    selectionMode: Boolean
 ) {
 
     Column(
@@ -212,19 +232,7 @@ fun CalendarHeader(
                 modifier = Modifier.height(80.dp)
             )
 
-            Image(
-                painter = painterResource(R.drawable.flower_4),
-                contentDescription = "Select period days",
-                modifier = Modifier
-                    .size(42.dp)
-                    .background(
-                        color = if (selectionMode) Brown.copy(alpha = 0.2f) else Color.Transparent,
-                        shape = RoundedCornerShape(50)
-                    )
-                    .clickable { onFlowerClick() }
-                    .padding(6.dp)
-                    .alpha(if (selectionMode) 0.6f else 1f)
-            )
+
         }
 
 
@@ -416,7 +424,28 @@ fun RowScope.DayCell(
                 } else Modifier
             )
             .then(
-                if (selectionMode && selectedDates.contains(date)) {
+                if (selectionMode && selectedDates.contains(date) && hasRealPeriod) {
+                    Modifier.drawBehind {
+                        val strokeWidth = 3.dp.toPx()
+                        val dashWidth = 10f
+                        val dashGap = 6f
+
+                        drawRoundRect(
+                            color = Brown,
+                            size = size,
+                            style = Stroke(
+                                width = strokeWidth,
+                                pathEffect = PathEffect.dashPathEffect(
+                                    floatArrayOf(dashWidth, dashGap)
+                                )
+                            ),
+                            cornerRadius = CornerRadius(16f)
+                        )
+                    }
+                } else Modifier
+            )
+            .then(
+                if (selectionMode && selectedDates.contains(date) && !hasRealPeriod) {
                     Modifier.border(3.dp, Color.Red, cellShape)
                 } else Modifier
             )
@@ -467,9 +496,18 @@ fun RowScope.DayCell(
             style = MaterialTheme.typography.bodyLarge,
             color = if (isFuture) futureText else Brown,
             fontWeight = if (isToday) FontWeight.ExtraBold else FontWeight.Normal,
-
-
         )
+        if (selectionMode && selectedDates.contains(date)) {
+            Text(
+                text = if (hasRealPeriod) "–" else "+",
+                color = Color.Red,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(4.dp)
+            )
+        }
+
     }
 }
 

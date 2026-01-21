@@ -15,6 +15,7 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.YearMonth
 import android.util.Log
+import kotlinx.coroutines.flow.first
 
 import java.time.ZoneId
 
@@ -315,29 +316,40 @@ class EntryViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun savePeriodDays(days: List<LocalDate>) {
+    fun togglePeriodDays(days: List<LocalDate>) {
         viewModelScope.launch {
             days.sorted().forEachIndexed { index, date ->
-                dao.insertEntry(
-                    DailyEntryEntity(
-                        date = date
-                            .atStartOfDay(ZoneId.systemDefault())
-                            .toInstant()
-                            .toEpochMilli(),
-                        bloodflowCategory = when {
-                            index == 0 -> 3
-                            index == days.size - 1 -> 1
-                            else -> 2
-                        },
-                        painCategory = 0,
-                        energyCategory = 0,
-                        moodCategory = -1,
-                        journalText = ""
+
+                val dateMillis = date
+                    .atStartOfDay(ZoneId.systemDefault())
+                    .toInstant()
+                    .toEpochMilli()
+
+                val existing = dao.getEntryByDate(dateMillis).first()
+
+                if (existing != null && existing.bloodflowCategory > 0) {
+                    dao.deleteEntry(existing)
+                } else {
+                    dao.insertEntry(
+                        DailyEntryEntity(
+                            date = dateMillis,
+                            bloodflowCategory = when {
+                                index == 0 -> 3
+                                index == days.size - 1 -> 1
+                                else -> 2
+                            },
+                            painCategory = 0,
+                            energyCategory = 0,
+                            moodCategory = -1,
+                            journalText = ""
+                        )
                     )
-                )
+                }
             }
         }
     }
+
+
 
 
 }
