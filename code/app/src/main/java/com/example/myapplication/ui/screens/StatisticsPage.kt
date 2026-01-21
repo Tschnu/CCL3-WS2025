@@ -53,6 +53,7 @@ import com.example.myapplication.ui.theme.MoodBrightGreen
 import com.example.myapplication.ui.theme.MoodDarkBlue
 import com.example.myapplication.ui.theme.MoodDarkGreen
 import com.example.myapplication.ui.theme.MoodYellow
+import com.example.myapplication.ui.theme.YellowStrong
 
 
 @Composable
@@ -73,6 +74,8 @@ fun StatisticsPage(navController: NavController) {
 
     // ---------------- REAL GRAPH STATE ----------------
     var selectedMonth by remember { mutableStateOf(YearMonth.now()) }
+    val thisMonth = remember { YearMonth.now() }
+
 
     LaunchedEffect(selectedMonth) {
         realVm.loadEntriesForMonth(selectedMonth)
@@ -92,6 +95,8 @@ fun StatisticsPage(navController: NavController) {
     val predicted = predVm.predictedMonths.collectAsState().value
     var predIndex by remember { mutableStateOf(0) } // 0..2
     val predMonth = predicted.getOrNull(predIndex)
+    val currentYM = remember { YearMonth.now() }
+
 
     // Filters shared by both charts
     var showBloodflow by remember { mutableStateOf(true) }
@@ -118,6 +123,13 @@ fun StatisticsPage(navController: NavController) {
         R.drawable.flower_5
     )
     val currentFlowerRes = flowerDrawables.getOrElse(flowerIndex.coerceIn(0, 4)) { flowerDrawables.first() }
+
+
+    LaunchedEffect(predicted) {
+        val idx = predicted.indexOfFirst { it.month == currentYM }
+        if (idx >= 0) predIndex = idx
+    }
+
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -438,30 +450,34 @@ fun StatisticsPage(navController: NavController) {
                             shape = RoundedCornerShape(14.dp),
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(56.dp)
+                                .height(48.dp)
                         ) {
                             Box(
-                                modifier = Modifier.fillMaxWidth(),
-                                contentAlignment = Alignment.Center
+                                modifier = Modifier.fillMaxWidth()
                             ) {
+                                // CENTERED TEXT (true center)
                                 Text(
-                                    text = "Journal Entries",
-                                    style = MaterialTheme.typography.titleLarge,
+                                    text = "View Journal Entries",
+                                    style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.SemiBold,
                                     textAlign = TextAlign.Center,
-                                    color = Softsoftyellow
+                                    color = Softsoftyellow,
+                                    modifier = Modifier.align(Alignment.Center)
                                 )
 
+                                // LEFT ICON (absolute positioning)
                                 Icon(
                                     painter = painterResource(id = R.drawable.journal),
                                     contentDescription = null,
                                     modifier = Modifier
                                         .align(Alignment.CenterStart)
                                         .padding(start = 12.dp)
-                                        .size(24.dp)
+                                        .size(24.dp),
+                                    tint = Softsoftyellow
                                 )
                             }
                         }
+
 
 
                     }
@@ -480,11 +496,14 @@ fun StatisticsPage(navController: NavController) {
 
 
                 Text(
-                    text = "Analysis",
+                    text = "Analysis Cycle",
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Center,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
                     color = Brown
                 )
+
                 Divider(
                     color = Brown,
                     thickness = 2.dp,
@@ -497,7 +516,7 @@ fun StatisticsPage(navController: NavController) {
                 // EVERYTHING BELOW = NO BACKGROUND
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Filter chips
+                // Filters
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -527,6 +546,24 @@ fun StatisticsPage(navController: NavController) {
 
                 Spacer(modifier = Modifier.height(24.dp))
 
+                Text(
+                    text = "Current Month",
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Center,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Brown
+                )
+
+                Divider(
+                    color = Brown,
+                    thickness = 2.dp,
+                    modifier = Modifier
+                        .padding(top = 4.dp)
+                    //.fillMaxWidth(0.9f)
+                )
+                Spacer(modifier = Modifier.height(24.dp))
+
                 // Month selector (no card background)
                 Surface(
                     shape = RoundedCornerShape(20.dp),
@@ -536,6 +573,8 @@ fun StatisticsPage(navController: NavController) {
                         modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
+
+                        // LEFT = go to previous month
                         Text(
                             text = "‹",
                             color = Brown,
@@ -544,7 +583,9 @@ fun StatisticsPage(navController: NavController) {
                                 .clickable(
                                     indication = null,
                                     interactionSource = remember { MutableInteractionSource() }
-                                )  { selectedMonth = selectedMonth.minusMonths(1) }
+                                ) {
+                                    selectedMonth = selectedMonth.minusMonths(1)
+                                }
                         )
 
                         Text(
@@ -555,18 +596,23 @@ fun StatisticsPage(navController: NavController) {
                             color = Brown
                         )
 
+                        // RIGHT = go to next month, but NOT beyond current month
                         Text(
                             text = "›",
-                            color = Brown,
+                            color = if (selectedMonth >= thisMonth) Brown.copy(alpha = 0.3f) else Brown,
                             modifier = Modifier
                                 .padding(horizontal = 8.dp)
                                 .clickable(
+                                    enabled = selectedMonth < thisMonth,
                                     indication = null,
                                     interactionSource = remember { MutableInteractionSource() }
-                                )  { selectedMonth = selectedMonth.plusMonths(1) }
+                                ) {
+                                    selectedMonth = selectedMonth.plusMonths(1)
+                                }
                         )
                     }
                 }
+
 
                 Spacer(modifier = Modifier.height(20.dp))
 
@@ -583,16 +629,28 @@ fun StatisticsPage(navController: NavController) {
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))
-                HorizontalDivider(color = Brown, thickness = 2.dp)
-                Spacer(modifier = Modifier.height(10.dp))
+
+
+
+
 
                 Text(
-                    text = "Prediction (next 3 months)",
+                    text = "Predictions",
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Center,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
-                    color = Brown,
-                    modifier = Modifier.fillMaxWidth()
+                    color = Brown
                 )
+
+                Divider(
+                    color = Brown,
+                    thickness = 2.dp,
+                    modifier = Modifier
+                        .padding(top = 4.dp)
+                    //.fillMaxWidth(0.9f)
+                )
+
 
                 Spacer(modifier = Modifier.height(12.dp))
 
@@ -657,18 +715,26 @@ private fun StatRow(label: String, value: String) {
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(label, Modifier.weight(1f), color = Brown)
+        Text(
+            label,
+            modifier = Modifier.weight(1f),
+            color = Brown
+        )
 
-        Surface(color = Brown, shape = RoundedCornerShape(12.dp)) {
+        Surface(
+            color = YellowStrong, // here is the background color
+            shape = RoundedCornerShape(12.dp)
+        ) {
             Text(
                 text = value,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
-                color = Color.White,
+                color = Brown, // there is text colour
                 fontWeight = FontWeight.SemiBold
             )
         }
     }
 }
+
 
 @Composable
 private fun LineToggleChip(
@@ -711,13 +777,24 @@ private fun DailyMetricsChart(
         Instant.ofEpochMilli(it.date).atZone(ZoneId.systemDefault()).toLocalDate()
     }
 
-    val pain = days.map { (byDate[it]?.painCategory ?: 0).toFloat() }
-    val mood = days.map {
-        val raw = byDate[it]?.moodCategory ?: 0
-        if(raw in 1..5)(6-raw).toFloat() else 0f
+    // ✅ null = "no entry" → creates gaps (no flatline)
+    val pain: List<Float?> = days.map { day ->
+        byDate[day]?.painCategory?.toFloat()
     }
-    val energy = days.map { (byDate[it]?.energyCategory ?: 0).toFloat() }
-    val flow = days.map { (byDate[it]?.bloodflowCategory ?: 0).toFloat() }
+
+    val energy: List<Float?> = days.map { day ->
+        byDate[day]?.energyCategory?.toFloat()
+    }
+
+    val flow: List<Float?> = days.map { day ->
+        byDate[day]?.bloodflowCategory?.toFloat()
+    }
+
+    val mood: List<Float?> = days.map { day ->
+        val raw = byDate[day]?.moodCategory ?: return@map null
+        // your mood is 0..4 → map it if you want it inverted on the chart:
+        (4 - raw).toFloat()
+    }
 
     MultiAxisLineChart(
         valuesPain = pain,
@@ -843,13 +920,26 @@ fun MoodDonutChart(
         modifier = modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+
+        Spacer(modifier = Modifier.height(24.dp))
+
         Text(
-            text = "Mood distribution",
+            text = "Mood Distribution",
+            modifier = Modifier.fillMaxWidth(),
+            textAlign = TextAlign.Center,
             style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.SemiBold
+            fontWeight = FontWeight.SemiBold,
+            color = Brown
         )
 
-        Spacer(Modifier.height(12.dp))
+        Divider(
+            color = Brown,
+            thickness = 2.dp,
+            modifier = Modifier
+                .padding(top = 4.dp)
+            //.fillMaxWidth(0.9f)
+        )
+        Spacer(modifier = Modifier.height(24.dp))
 
         Box(
             modifier = Modifier
@@ -958,10 +1048,25 @@ private fun PredictedMonthChart(
     showMood: Boolean,
     showEnergy: Boolean
 ) {
-    val pain = prediction?.painByDay ?: List(30) { 0f }
-    val mood = prediction?.moodByDay ?: List(30) { 0f }
-    val energy = prediction?.energyByDay ?: List(30) { 0f }
-    val flow = prediction?.bloodflowByDay ?: List(30) { 0f }
+    val days = prediction?.painByDay?.size ?: 30
+
+    val pain: List<Float?> =
+        prediction?.painByDay?.map { it } ?: List(days) { null }
+
+    val flow: List<Float?> =
+        prediction?.bloodflowByDay?.map { it } ?: List(days) { null }
+
+    // ✅ Mood: neutral flatline at 2
+    val mood: List<Float?> =
+        prediction?.moodByDay
+            ?.map { if (it > 0f) it else 2f }
+            ?: List(days) { 2f }
+
+    // ✅ Energy: neutral flatline at 2
+    val energy: List<Float?> =
+        prediction?.energyByDay
+            ?.map { if (it > 0f) it else 2f }
+            ?: List(days) { 2f }
 
     MultiAxisLineChart(
         valuesPain = pain,
@@ -975,18 +1080,20 @@ private fun PredictedMonthChart(
     )
 }
 
+
 @Composable
 private fun MultiAxisLineChart(
-    valuesPain: List<Float>,
-    valuesMood: List<Float>,
-    valuesEnergy: List<Float>,
-    valuesFlow: List<Float>,
+    valuesPain: List<Float?>,
+    valuesMood: List<Float?>,
+    valuesEnergy: List<Float?>,
+    valuesFlow: List<Float?>,
     showBloodflow: Boolean,
     showPain: Boolean,
     showMood: Boolean,
     showEnergy: Boolean
 ) {
-    val count = listOf(valuesPain.size, valuesMood.size, valuesEnergy.size, valuesFlow.size).minOrNull() ?: 0
+    val count = listOf(valuesPain.size, valuesMood.size, valuesEnergy.size, valuesFlow.size)
+        .minOrNull() ?: 0
     if (count <= 1) return
 
     Canvas(
@@ -1010,11 +1117,12 @@ private fun MultiAxisLineChart(
         fun yRight(v: Float) =
             bottom - (v.coerceIn(0f, rightMax) / rightMax) * (bottom - top)
 
-
+        // axes
         drawLine(Color.Black, Offset(left, top), Offset(left, bottom), 3f)
         drawLine(Color.Black, Offset(right, top), Offset(right, bottom), 3f)
         drawLine(Color.Black, Offset(left, bottom), Offset(right, bottom), 3f)
 
+        // ✅ Y labels left
         for (i in 0..leftMax.toInt()) {   // 0..4
             val y = yLeft(i.toFloat())
             drawLine(Color.Black, Offset(left - 6f, y), Offset(left, y), 2f)
@@ -1029,6 +1137,7 @@ private fun MultiAxisLineChart(
             )
         }
 
+        // ✅ Y labels right
         for (i in 0..rightMax.toInt()) {  // 0..3
             val y = yRight(i.toFloat())
             drawLine(Color.Black, Offset(right, y), Offset(right + 6f, y), 2f)
@@ -1043,20 +1152,54 @@ private fun MultiAxisLineChart(
             )
         }
 
+        // ✅ X labels at 0/10/20/30 (skip if out of range)
+        val xLabelPaint = android.graphics.Paint().apply {
+            textSize = 24f
+            textAlign = android.graphics.Paint.Align.CENTER
+        }
+        val maxIndex = count - 1
+        for (v in listOf(0, 10, 20, 30)) {
+            if (v > maxIndex) continue
+            val px = x(v)
+            drawLine(Color.Black, Offset(px, bottom), Offset(px, bottom + 6f), 2f)
+            drawContext.canvas.nativeCanvas.drawText(
+                v.toString(),
+                px,
+                bottom + 26f,
+                xLabelPaint
+            )
+        }
 
-        fun drawSeries(values: List<Float>, color: Color, rightAxis: Boolean) {
+        // ✅ draws segments only where values exist (null breaks the line)
+        fun drawSeries(values: List<Float?>, color: Color, rightAxis: Boolean) {
             val path = Path()
+            var started = false
+
             for (i in 0 until count) {
+                val v = values[i]
+                if (v == null) {
+                    started = false
+                    continue
+                }
+
                 val px = x(i)
-                val py = if (rightAxis) yRight(values[i]) else yLeft(values[i])
-                if (i == 0) path.moveTo(px, py) else path.lineTo(px, py)
+                val py = if (rightAxis) yRight(v) else yLeft(v)
+
+                if (!started) {
+                    path.moveTo(px, py)
+                    started = true
+                } else {
+                    path.lineTo(px, py)
+                }
             }
 
             drawPath(path, color, style = Stroke(5f, cap = StrokeCap.Round))
 
+            // dots only where v != null
             for (i in 0 until count) {
+                val v = values[i] ?: continue
                 val px = x(i)
-                val py = if (rightAxis) yRight(values[i]) else yLeft(values[i])
+                val py = if (rightAxis) yRight(v) else yLeft(v)
                 drawCircle(color = color, radius = 6f, center = Offset(px, py))
             }
         }
@@ -1067,3 +1210,4 @@ private fun MultiAxisLineChart(
         if (showEnergy) drawSeries(valuesEnergy, GreenDark, false)
     }
 }
+
