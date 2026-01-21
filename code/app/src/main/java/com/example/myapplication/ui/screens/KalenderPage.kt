@@ -1,5 +1,6 @@
 package com.example.myapplication.ui.screens
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -23,9 +24,15 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.material3.Button
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableStateSetOf
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.font.FontWeight
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
@@ -69,6 +76,10 @@ fun KalenderPage(navController: NavController) {
         .toInstant()
         .toEpochMilli()
 
+    var selectionMode by remember { mutableStateOf(false) }
+    val selectedDates = remember { mutableStateSetOf<LocalDate>() }
+
+
     LaunchedEffect(startDateLong, endDateLong) {
         entryViewModel.loadBloodflowForRange(startDateLong, endDateLong)
     }
@@ -89,7 +100,49 @@ fun KalenderPage(navController: NavController) {
         // ✅ Your normal page content
         Column(modifier = Modifier.fillMaxSize()) {
 
-            CalendarHeader()
+            CalendarHeader(
+                selectionMode = selectionMode,
+                onFlowerClick = {
+                    selectionMode = !selectionMode
+                    if (!selectionMode) selectedDates.clear()
+                }
+            )
+
+            if (selectionMode && selectedDates.isNotEmpty()) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Button(
+                        onClick = {
+                            entryViewModel.savePeriodDays(selectedDates.toList())
+                            selectedDates.clear()
+                            selectionMode = false
+                        },
+                        modifier = Modifier.weight(1f),
+                        colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                            containerColor = Brown
+                        )
+                    ) {
+                        Text(text = "Period",
+                            color = Softsoftyellow)
+                    }
+
+                    Button(
+                        onClick = {
+                            selectedDates.clear()
+                            selectionMode = false
+                        },
+                        modifier = Modifier.weight(1f),
+                        border = BorderStroke(2.dp, Color.Red)
+                    ) {
+                        Text("Cancel", color = Color.Red)
+                    }
+                }
+            }
+
             WeekDayHeader()
             Spacer(modifier = Modifier.height(10.dp))
 
@@ -105,7 +158,9 @@ fun KalenderPage(navController: NavController) {
                         month = month,
                         navController = navController,
                         bloodflowMap = bloodflowMap,
-                        predictedMap = predictedBloodflowMap
+                        predictedMap = predictedBloodflowMap,
+                        selectionMode = selectionMode,
+                        selectedDates = selectedDates
                     )
                 }
             }
@@ -132,7 +187,10 @@ fun KalenderPage(navController: NavController) {
 
 
 @Composable
-fun CalendarHeader() {
+fun CalendarHeader(
+    selectionMode: Boolean,
+    onFlowerClick: () -> Unit
+) {
 
     Column(
         modifier = Modifier
@@ -140,22 +198,35 @@ fun CalendarHeader() {
             .padding(top = 8.dp, bottom = 4.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Image(
-            painter = painterResource(R.drawable.logo),
-            contentDescription = "Quiet Bloom Logo",
+        Row(
             modifier = Modifier
-                .height(80.dp)
-                .padding(end = 140.dp)
-        )
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
 
+            Image(
+                painter = painterResource(R.drawable.logo),
+                contentDescription = "Quiet Bloom Logo",
+                modifier = Modifier.height(80.dp)
+            )
 
-        Divider(
-            color = Brown,
-            thickness = 2.dp,
-            modifier = Modifier
-                .padding(top = 4.dp)
-                .fillMaxWidth(0.9f)
-        )
+            Image(
+                painter = painterResource(R.drawable.flower_4),
+                contentDescription = "Select period days",
+                modifier = Modifier
+                    .size(42.dp)
+                    .background(
+                        color = if (selectionMode) Brown.copy(alpha = 0.2f) else Color.Transparent,
+                        shape = RoundedCornerShape(50)
+                    )
+                    .clickable { onFlowerClick() }
+                    .padding(6.dp)
+                    .alpha(if (selectionMode) 0.6f else 1f)
+            )
+        }
+
 
         Divider(
             color = Brown,
@@ -207,7 +278,9 @@ fun MonthCalendar(
     month: YearMonth,
     navController: NavController,
     bloodflowMap: Map<Long, Int>,
-    predictedMap: Map<Long, Int>
+    predictedMap: Map<Long, Int>,
+    selectionMode: Boolean,
+    selectedDates: MutableSet<LocalDate>
 ) {
     val firstDayOfMonth = month.atDay(1)
     val daysInMonth = month.lengthOfMonth()
@@ -237,7 +310,9 @@ fun MonthCalendar(
                                 month = month,
                                 navController = navController,
                                 bloodflowMap = bloodflowMap,
-                                predictedMap = predictedMap
+                                predictedMap = predictedMap,
+                                selectionMode = selectionMode,
+                                selectedDates = selectedDates
                             )
                         } else {
                             EmptyCell()
@@ -286,7 +361,9 @@ fun RowScope.DayCell(
     month: YearMonth,
     navController: NavController,
     bloodflowMap: Map<Long, Int>,
-    predictedMap: Map<Long, Int>
+    predictedMap: Map<Long, Int>,
+    selectionMode: Boolean,
+    selectedDates: MutableSet<LocalDate>
 ) {
     val futureText = Color(0x993D2B1F)
     val cellShape = RoundedCornerShape(8.dp)
@@ -330,15 +407,29 @@ fun RowScope.DayCell(
                 } else Modifier
             )
             .then(
+                if (selectionMode && selectedDates.contains(date)) {
+                    Modifier.border(3.dp, Color.Red, cellShape)
+                } else Modifier
+            )
+            .then(
                 if (isToday) {
                     Modifier.border(2.dp, Brown, cellShape)
                 } else Modifier
             )
             .then(
                 if (isClickable) Modifier.clickable {
-                    navController.navigate(Screen.AddEntry.createRoute(date.toString()))
+                    if (selectionMode) {
+                        if (selectedDates.contains(date)) {
+                            selectedDates.remove(date)
+                        } else {
+                            selectedDates.add(date)
+                        }
+                    } else {
+                        navController.navigate(Screen.AddEntry.createRoute(date.toString()))
+                    }
                 } else Modifier
-            ),
+            )
+        ,
         contentAlignment = Alignment.Center
     )
     {

@@ -303,5 +303,29 @@ class EntryViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    fun savePeriodDays(days: List<LocalDate>) {
+        viewModelScope.launch {
+            days.sorted().forEachIndexed { index, date ->
+                dao.insertEntry(
+                    DailyEntryEntity(
+                        date = date
+                            .atStartOfDay(ZoneId.systemDefault())
+                            .toInstant()
+                            .toEpochMilli(),
+                        bloodflowCategory = when {
+                            index == 0 -> 3
+                            index == days.size - 1 -> 1
+                            else -> 2
+                        },
+                        painCategory = 0,
+                        energyCategory = 0,
+                        moodCategory = -1,
+                        journalText = ""
+                    )
+                )
+            }
+        }
+    }
+
 
 }
