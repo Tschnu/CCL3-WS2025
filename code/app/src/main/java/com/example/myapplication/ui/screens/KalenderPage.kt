@@ -235,6 +235,15 @@ fun CalendarHeader(
                 .padding(top = 4.dp)
                 .fillMaxWidth(0.9f)
         )
+
+
+        Divider(
+            color = Brown,
+            thickness = 2.dp,
+            modifier = Modifier
+                .padding(top = 4.dp)
+                .fillMaxWidth(0.9f)
+        )
     }
 }
 
