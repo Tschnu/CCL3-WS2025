@@ -38,12 +38,15 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
+import androidx.core.graphics.alpha
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.myapplication.R
 import com.example.myapplication.ui.navigation.Screen
 import com.example.myapplication.ui.theme.Brown
 import com.example.myapplication.ui.theme.MoodBrightBlue
+import com.example.myapplication.ui.theme.RedLight
+import com.example.myapplication.ui.theme.RedLightLight
 import com.example.myapplication.ui.theme.Softsoftyellow
 import com.example.myapplication.viewModel.EntryViewModel
 import java.time.DayOfWeek
@@ -137,9 +140,9 @@ fun KalenderPage(navController: NavController) {
                             selectionMode = false
                         },
                         modifier = Modifier.weight(1f),
-                        border = BorderStroke(2.dp, Color.Red)
+                        border = BorderStroke(2.dp, RedLightLight)
                     ) {
-                        Text("Cancel", color = Color.Red)
+                        Text("Cancel", color = RedLightLight)
                     }
                 }
             }
@@ -201,7 +204,7 @@ fun KalenderPage(navController: NavController) {
                 }
                 .border(
                     width = if (selectionMode) 2.dp else 1.dp,
-                    color = if (selectionMode) Color.Red else Brown,
+                    color = if (selectionMode) RedLightLight else Color.Transparent,
                     shape = RoundedCornerShape(30)
                 )
                 .padding(3.dp)
@@ -260,7 +263,6 @@ fun CalendarHeader(
 
 @Composable
 fun MonthHeader(month: YearMonth) {
-    val brown = Color(0xFF3D2B1F)
 
     val title =
         month.month.getDisplayName(TextStyle.FULL, Locale.getDefault())
@@ -274,20 +276,20 @@ fun MonthHeader(month: YearMonth) {
     ) {
         Divider(
             thickness = 2.dp,
-            color = brown,
+            color = Brown,
             modifier = Modifier.fillMaxWidth(0.98f)
         )
 
         Text(
             text = title,
             style = MaterialTheme.typography.labelMedium,
-            color = brown,
+            color = Brown,
             modifier = Modifier.padding(vertical = 2.dp)
         )
 
         Divider(
             thickness = 2.dp,
-            color = brown,
+            color = Brown,
             modifier = Modifier.fillMaxWidth(0.98f)
         )
     }
@@ -430,7 +432,7 @@ fun RowScope.DayCell(
             .then(futureOutline)
             .then(
                 if (hasRealPeriod) {
-                    Modifier.border(2.dp, Color.Red, cellShape)
+                    Modifier.border(2.dp, RedLight.copy(alpha = 0.5f), cellShape)
                 } else Modifier
             )
             .then(
@@ -456,7 +458,7 @@ fun RowScope.DayCell(
             )
             .then(
                 if (selectionMode && selectedDates.contains(date) && !hasRealPeriod) {
-                    Modifier.border(3.dp, Color.Red, cellShape)
+                    Modifier.border(3.dp, RedLight.copy(alpha = 0.5f), cellShape)
                 } else Modifier
             )
             .then(
@@ -515,9 +517,9 @@ fun RowScope.DayCell(
 
         flowToShow?.let { value ->
             val imageRes = when (value) {
-                1 -> R.drawable.little_blood_full
-                2 -> R.drawable.middle_blood_full
-                3 -> R.drawable.big_blood_full
+                1 -> R.drawable.splatter_light
+                2 -> R.drawable.splatter_medium
+                3 -> R.drawable.splatter_heavy
                 else -> null
             }
 
@@ -528,7 +530,7 @@ fun RowScope.DayCell(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(4.dp),
-                    alpha = if (isPredicted) 0.5f else 1f
+                    alpha = if (isPredicted) 0.3f else 0.5f
                 )
             }
         }
@@ -536,13 +538,21 @@ fun RowScope.DayCell(
         Text(
             text = day.toString(),
             style = MaterialTheme.typography.bodyLarge,
-            color = if (isFuture) futureText else Brown,
-            fontWeight = if (isToday) FontWeight.ExtraBold else FontWeight.Normal,
+            color = when {
+                hasRealPeriod -> Brown
+                isFuture -> futureText
+                else -> Brown
+            },
+            fontWeight = when{
+                hasRealPeriod -> FontWeight.ExtraBold
+                isToday -> FontWeight.ExtraBold
+                else -> FontWeight.Medium
+            }
         )
         if (selectionMode && selectedDates.contains(date)) {
             Text(
                 text = if (hasRealPeriod) "–" else "+",
-                color = Color.Red,
+                color = RedLight.copy(alpha = 0.5f),
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier
                     .align(Alignment.TopEnd)

@@ -11,7 +11,8 @@ val BrownLight = Color(0xFF6F4E37)
 val Brown = Color(0xFF3D2B1F)
 
 
-val RedLight = Color(0xFFE45853)
+val RedLight = Color(0xFF9E0602)
+val RedLightLight = Color(0xFFD07863)
 val BackgroundRed = Color(0xFFFFFFFF)
 
 

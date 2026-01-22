@@ -115,9 +115,9 @@ fun AddEntryPage(
         ValueImageRow(
             items = listOf(
                 R.drawable.nothing to 0,
-                R.drawable.little_blood_full to 1,
-                R.drawable.middle_blood_full to 2,
-                R.drawable.big_blood_full to 3
+                R.drawable.splatter_light to 1,
+                R.drawable.splatter_medium to 2,
+                R.drawable.splatter_heavy to 3
             ),
             selectedValue = bloodflow,
             onSelect = viewModel::setBloodflowCategory
