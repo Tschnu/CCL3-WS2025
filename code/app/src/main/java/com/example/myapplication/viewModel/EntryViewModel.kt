@@ -51,29 +51,6 @@ class EntryViewModel(application: Application) : AndroidViewModel(application) {
     }
 
 
-
-//    private fun recalcPredictions() {
-//        val result = PeriodForecast.predictNextMonthsFromLast3Months(
-//            allEntries = _allEntries.value,
-//            baseMonth = YearMonth.now(),
-//            monthsAhead = 3
-//        )
-//        _predictedMonths.value = result
-//
-//        // DEBUG: print first 10 values of the first predicted month
-//        val first = result.firstOrNull()
-//        if (first != null) {
-//            Log.d("PRED", "month=${first.month}")
-//            Log.d("PRED", "pain=${first.painByDay.take(10)}")
-//            Log.d("PRED", "mood=${first.moodByDay.take(10)}")
-//            Log.d("PRED", "energy=${first.energyByDay.take(10)}")
-//            Log.d("PRED", "flow=${first.bloodflowByDay.take(10)}")
-//        } else {
-//            Log.d("PRED", "No predictions generated (result empty)")
-//        }
-//    }
-
-
     private fun recalcPredictions() {
         val result = PeriodForecast.predictNextMonthsFromLast3Months(
             allEntries = _allEntries.value,

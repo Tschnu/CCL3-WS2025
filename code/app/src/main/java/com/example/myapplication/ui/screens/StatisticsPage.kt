@@ -147,6 +147,9 @@ fun StatisticsPage(navController: NavController) {
         realVm.loadEntriesForMonth(selectedMonth)
     }
 
+    val ovulationDays = realVm.ovulationDays.collectAsState().value
+
+
     val chartEntries = realVm.entriesForChart.collectAsState().value
 
     // ---------------- PREDICTION GRAPH STATE ----------------
@@ -156,6 +159,21 @@ fun StatisticsPage(navController: NavController) {
     LaunchedEffect(Unit) {
         predVm.loadEntriesForMonth(lastMonth)
         predVm.setPredictionBaseMonth(currentMonth)
+
+        val start = currentMonth
+            .atDay(1)
+            .atStartOfDay(ZoneId.systemDefault())
+            .toInstant()
+            .toEpochMilli()
+
+        val end = currentMonth
+            .plusMonths(3)
+            .atEndOfMonth()
+            .atStartOfDay(ZoneId.systemDefault())
+            .toInstant()
+            .toEpochMilli()
+
+        predVm.loadBloodflowForRange(start, end)
     }
 
     val predicted = predVm.predictedMonths.collectAsState().value
@@ -171,8 +189,8 @@ fun StatisticsPage(navController: NavController) {
     // Filters shared by both charts
     var showBloodflow by remember { mutableStateOf(true) }
     var showPain by remember { mutableStateOf(true) }
-    var showMood by remember { mutableStateOf(true) }
-    var showEnergy by remember { mutableStateOf(true) }
+    var showMood by remember { mutableStateOf(false) }
+    var showEnergy by remember { mutableStateOf(false) }
 
     // ---------- DRAWER UI STATE ----------
     var isEditingName by remember { mutableStateOf(false) }
@@ -685,6 +703,10 @@ fun StatisticsPage(navController: NavController) {
                         DailyMetricsChart(
                             entries = chartEntries,
                             month = selectedMonth,
+                            ovulationDays = ovulationDays
+                                .filter { YearMonth.from(it) == selectedMonth }
+                                .map { it.dayOfMonth }
+                                .toSet(),
                             showBloodflow = showBloodflow,
                             showPain = showPain,
                             showMood = showMood,
@@ -726,6 +748,10 @@ fun StatisticsPage(navController: NavController) {
 
                             PredictedMonthChart(
                                 prediction = predMonth,
+                                ovulationDays = ovulationDays
+                                    .filter { YearMonth.from(it) == predMonth?.month }
+                                    .map { it.dayOfMonth }
+                                    .toSet(),
                                 showBloodflow = showBloodflow,
                                 showPain = showPain,
                                 showMood = showMood,
@@ -914,6 +940,7 @@ private fun ShapeIcon(shape: MarkerShape, color: Color, size: Int = 14) {
 private fun DailyMetricsChart(
     entries: List<DailyEntryEntity>,
     month: YearMonth,
+    ovulationDays: Set<Int>,
     showBloodflow: Boolean,
     showPain: Boolean,
     showMood: Boolean,
@@ -952,6 +979,7 @@ private fun DailyMetricsChart(
         valuesMood = mood,
         valuesEnergy = energy,
         valuesFlow = flow,
+        ovulationDays = ovulationDays,
         showBloodflow = showBloodflow,
         showPain = showPain,
         showMood = showMood,
@@ -1012,6 +1040,7 @@ private fun PredictionMonthSelector(
 @Composable
 private fun PredictedMonthChart(
     prediction: PeriodForecast.MonthlyPrediction?,
+    ovulationDays: Set<Int>,
     showBloodflow: Boolean,
     showPain: Boolean,
     showMood: Boolean,
@@ -1049,6 +1078,7 @@ private fun PredictedMonthChart(
         valuesMood = mood.ifEmpty { List(days) { null } },
         valuesEnergy = energy.ifEmpty { List(days) { null } },
         valuesFlow = flow.ifEmpty { List(days) { null } },
+        ovulationDays = ovulationDays,
         showBloodflow = showBloodflow,
         showPain = showPain,
         showMood = showMood,
@@ -1193,6 +1223,7 @@ private fun MultiAxisLineChart(
     valuesMood: List<Float?>,
     valuesEnergy: List<Float?>,
     valuesFlow: List<Float?>,
+    ovulationDays: Set<Int>,
     showBloodflow: Boolean,
     showPain: Boolean,
     showMood: Boolean,
@@ -1226,6 +1257,43 @@ private fun MultiAxisLineChart(
 
         fun yRight(v: Float) =
             bottom - (v.coerceIn(0f, rightMax) / rightMax) * (bottom - top)
+
+        // =====================
+        // OVULATION BACKGROUND
+        // =====================
+        for (i in 0 until count) {
+            if (ovulationDays.contains(i + 1)) {
+
+                val xPos = x(i)
+                val barWidth = (right - left) / count * 0.8f
+
+                // main ovulation day
+                drawRect(
+                    color = MoodBrightBlue.copy(alpha = 0.35f),
+                    topLeft = Offset(xPos - barWidth / 2f, top),
+                    size = Size(barWidth, bottom - top)
+                )
+
+                // day -1
+                if (ovulationDays.contains(i)) {
+                    drawRect(
+                        color = MoodBrightBlue.copy(alpha = 0.18f),
+                        topLeft = Offset(xPos - barWidth / 2f - barWidth, top),
+                        size = Size(barWidth, bottom - top)
+                    )
+                }
+
+                // day -2
+                if (ovulationDays.contains(i - 1)) {
+                    drawRect(
+                        color = MoodBrightBlue.copy(alpha = 0.1f),
+                        topLeft = Offset(xPos - barWidth / 2f - barWidth * 2, top),
+                        size = Size(barWidth, bottom - top)
+                    )
+                }
+            }
+        }
+
 
         // axes
         drawLine(Color.Black, Offset(left, top), Offset(left, bottom), 3f)
