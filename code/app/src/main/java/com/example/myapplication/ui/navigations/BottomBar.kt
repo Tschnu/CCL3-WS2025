@@ -19,6 +19,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.myapplication.R
 import java.time.LocalDate
@@ -63,10 +64,13 @@ fun BottomBar(navController: NavController) {
                     iconRes = if (onHome) R.drawable.calender_filled else R.drawable.calender_lines,
                     onClick = {
                         navController.navigate(Screen.Home.route) {
-                            popUpTo(Screen.Home.route) { inclusive = false }
+                            popUpTo(navController.graph.findStartDestination().id) {
+                                saveState = true
+                            }
                             launchSingleTop = true
                             restoreState = true
                         }
+
                     }
                 )
 
@@ -92,10 +96,13 @@ fun BottomBar(navController: NavController) {
                     iconRes = if (onAnalyze) R.drawable.analyze_filled else R.drawable.analyze_lines,
                     onClick = {
                         navController.navigate(Screen.StatisticsPage.route) {
-                            popUpTo(Screen.Home.route) { inclusive = false }
+                            popUpTo(navController.graph.findStartDestination().id) {
+                                saveState = true
+                            }
                             launchSingleTop = true
                             restoreState = true
                         }
+
                     }
                 )
             }
