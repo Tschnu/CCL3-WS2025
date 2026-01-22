@@ -407,6 +407,10 @@ fun RowScope.DayCell(
     val realFlow = bloodflowMap[dateLong]
     val predictedFlow = predictedMap[dateLong]
 
+    val isOvulation = ovulationDays.contains(date)
+    val isOvulationMinus1 = ovulationDays.contains(date.plusDays(1))
+    val isOvulationMinus2 = ovulationDays.contains(date.plusDays(2))
+
     val flowToShow = realFlow ?: predictedFlow
     val isPredicted = realFlow == null && predictedFlow != null
 
@@ -477,6 +481,38 @@ fun RowScope.DayCell(
         contentAlignment = Alignment.Center
     )
     {
+
+        // 🔵 OVULATION VISUALS (background layer)
+        if (ovulationDays.isNotEmpty()) {
+
+            // großer Kreis: Ovulationstag
+            if (isOvulation) {
+                Box(
+                    modifier = Modifier
+                        .size(30.dp)
+                        .background(
+                            color = MoodBrightBlue.copy(alpha = 0.35f),
+                            shape = RoundedCornerShape(50)
+                        )
+                )
+            }
+
+            if (isOvulationMinus1 || isOvulationMinus2) {
+                Box(
+                    modifier = Modifier
+                        .size(15.dp)
+                        .background(
+                            color = MoodBrightBlue.copy(alpha = 0.35f),
+                            shape = RoundedCornerShape(50)
+                        )
+                        .align(Alignment.Center)
+                        .padding(bottom = 6.dp)
+                )
+            }
+        }
+
+
+
         flowToShow?.let { value ->
             val imageRes = when (value) {
                 1 -> R.drawable.little_blood_full
@@ -513,21 +549,6 @@ fun RowScope.DayCell(
                     .padding(4.dp)
             )
         }
-        // 🔵 Ovulation dot (only if ovulation exists at all)
-        if (
-            ovulationDays.isNotEmpty() &&
-            ovulationDays.contains(date)
-        ) {
-            Box(
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(bottom = 4.dp)
-                    .size(5.dp)
-                    .background(color = MoodBrightBlue, shape = RoundedCornerShape(50))
-            )
-
-        }
-
     }
 }
 
