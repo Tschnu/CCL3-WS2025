@@ -393,4 +393,38 @@ object PeriodForecast {
         val pain: Float,
         val flow: Float
     )
+
+
+    fun predictOvulationDays(
+        periodStarts: List<LocalDate>,
+        rangeStart: LocalDate,
+        rangeEnd: LocalDate,
+        defaultCycleDays: Int = 28
+    ): Set<LocalDate> {
+
+        if (periodStarts.isEmpty()) return emptySet()
+
+        val diffs = periodStarts
+            .zipWithNext { a, b -> ChronoUnit.DAYS.between(a, b).toInt() }
+            .filter { it in 21..40 }
+
+        val cycleLength = if (diffs.isNotEmpty()) {
+            diffs.average().roundToInt()
+        } else defaultCycleDays
+
+        val lastStart = periodStarts.last()
+        val ovulationOffset = cycleLength - 14
+
+        val result = mutableSetOf<LocalDate>()
+        var nextStart = lastStart
+
+        while (nextStart.isBefore(rangeEnd)) {
+            val ovu = nextStart.plusDays(ovulationOffset.toLong())
+            if (!ovu.isBefore(rangeStart) && !ovu.isAfter(rangeEnd)) {
+                result.add(ovu)
+            }
+            nextStart = nextStart.plusDays(cycleLength.toLong())
+        }
+        return result
+    }
 }

@@ -43,6 +43,7 @@ import androidx.navigation.NavController
 import com.example.myapplication.R
 import com.example.myapplication.ui.navigation.Screen
 import com.example.myapplication.ui.theme.Brown
+import com.example.myapplication.ui.theme.MoodBrightBlue
 import com.example.myapplication.ui.theme.Softsoftyellow
 import com.example.myapplication.viewModel.EntryViewModel
 import java.time.DayOfWeek
@@ -83,6 +84,7 @@ fun KalenderPage(navController: NavController) {
     var selectionMode by remember { mutableStateOf(false) }
     val selectedDates = remember { mutableStateSetOf<LocalDate>() }
 
+    val ovulationDays = entryViewModel.ovulationDays.collectAsState().value
 
     LaunchedEffect(startDateLong, endDateLong) {
         entryViewModel.loadBloodflowForRange(startDateLong, endDateLong)
@@ -159,7 +161,8 @@ fun KalenderPage(navController: NavController) {
                         bloodflowMap = bloodflowMap,
                         predictedMap = predictedBloodflowMap,
                         selectionMode = selectionMode,
-                        selectedDates = selectedDates
+                        selectedDates = selectedDates,
+                        ovulationDays = ovulationDays
                     )
                 }
             }
@@ -187,9 +190,9 @@ fun KalenderPage(navController: NavController) {
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(16.dp)
-                .size(48.dp)
+                .size(55.dp)
                 .background(
-                    color = Softsoftyellow ,
+                    color = Brown,
                     shape = RoundedCornerShape(30)
                 )
                 .clickable {
@@ -297,7 +300,8 @@ fun MonthCalendar(
     bloodflowMap: Map<Long, Int>,
     predictedMap: Map<Long, Int>,
     selectionMode: Boolean,
-    selectedDates: MutableSet<LocalDate>
+    selectedDates: MutableSet<LocalDate>,
+    ovulationDays: Set<LocalDate>
 ) {
     val firstDayOfMonth = month.atDay(1)
     val daysInMonth = month.lengthOfMonth()
@@ -329,7 +333,8 @@ fun MonthCalendar(
                                 bloodflowMap = bloodflowMap,
                                 predictedMap = predictedMap,
                                 selectionMode = selectionMode,
-                                selectedDates = selectedDates
+                                selectedDates = selectedDates,
+                                ovulationDays = ovulationDays
                             )
                         } else {
                             EmptyCell()
@@ -380,7 +385,8 @@ fun RowScope.DayCell(
     bloodflowMap: Map<Long, Int>,
     predictedMap: Map<Long, Int>,
     selectionMode: Boolean,
-    selectedDates: MutableSet<LocalDate>
+    selectedDates: MutableSet<LocalDate>,
+    ovulationDays: Set<LocalDate>
 ) {
     val futureText = Color(0x993D2B1F)
     val cellShape = RoundedCornerShape(8.dp)
@@ -506,6 +512,20 @@ fun RowScope.DayCell(
                     .align(Alignment.TopEnd)
                     .padding(4.dp)
             )
+        }
+        // 🔵 Ovulation dot (only if ovulation exists at all)
+        if (
+            ovulationDays.isNotEmpty() &&
+            ovulationDays.contains(date)
+        ) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 4.dp)
+                    .size(5.dp)
+                    .background(color = MoodBrightBlue, shape = RoundedCornerShape(50))
+            )
+
         }
 
     }

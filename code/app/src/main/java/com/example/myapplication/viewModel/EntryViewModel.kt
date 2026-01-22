@@ -30,18 +30,20 @@ class EntryViewModel(application: Application) : AndroidViewModel(application) {
     val entriesForChart: StateFlow<List<DailyEntryEntity>> = _entriesForChart
 
     // ----------------------------
+    // Ovulation (CALENDAR)
+    // ----------------------------
+    private val _ovulationDays = MutableStateFlow<Set<LocalDate>>(emptySet())
+    val ovulationDays: StateFlow<Set<LocalDate>> = _ovulationDays
+
+    // ----------------------------
     // PREDICTIONS (NEXT 3 MONTHS)
     // ----------------------------
     private val _predictionBaseMonth = MutableStateFlow(YearMonth.now())
-
     private val _predictedMonths =
         MutableStateFlow<List<PeriodForecast.MonthlyPrediction>>(emptyList())
     val predictedMonths: StateFlow<List<PeriodForecast.MonthlyPrediction>> = _predictedMonths
 
-    /**
-     * Call this from StatisticsPage whenever the user changes the month.
-     * Predictions are always: next 3 months, based on the last 3 months of data (ending at baseMonth).
-     */
+
     fun setPredictionBaseMonth(@Suppress("UNUSED_PARAMETER") baseMonth: YearMonth) {
         // make sure the prediction list includes the current month
         _predictionBaseMonth.value = YearMonth.now().minusMonths(1)
@@ -227,6 +229,25 @@ class EntryViewModel(application: Application) : AndroidViewModel(application) {
                 _predictedBloodflowByDate.value = predicted.mapKeys {
                     it.key.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
                 }
+                // 🔵 OVULATION DAYS (derived, not editable)
+                val periodStarts = localDateMap
+                    .filter { it.value > 0 }
+                    .keys
+                    .sorted()
+                    .filter { d ->
+                        (localDateMap[d.minusDays(1)] ?: 0) == 0
+                    }
+
+                _ovulationDays.value = PeriodForecast.predictOvulationDays(
+                    periodStarts = periodStarts,
+                    rangeStart = Instant.ofEpochMilli(start)
+                        .atZone(ZoneId.systemDefault())
+                        .toLocalDate(),
+                    rangeEnd = Instant.ofEpochMilli(end)
+                        .atZone(ZoneId.systemDefault())
+                        .toLocalDate()
+                )
+
             }
         }
     }
