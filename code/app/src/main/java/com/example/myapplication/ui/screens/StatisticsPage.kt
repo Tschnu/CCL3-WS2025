@@ -126,6 +126,8 @@ private fun regularPolygonPath(center: Offset, radius: Float, sides: Int): Path 
 @Composable
 fun StatisticsPage(navController: NavController) {
 
+
+
     // ---------- DRAWER ----------
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
@@ -147,14 +149,61 @@ fun StatisticsPage(navController: NavController) {
         realVm.loadEntriesForMonth(selectedMonth)
     }
 
-    val ovulationDays = realVm.ovulationDays.collectAsState().value
 
+    val ovulationDays = predVm.ovulationDays.collectAsState().value
 
     val chartEntries = realVm.entriesForChart.collectAsState().value
+    val isLoadingMonth = realVm.isLoadingMonth.collectAsState().value
+
+
+    var stableMonth by remember { mutableStateOf(selectedMonth) }
+    var stableEntries by remember { mutableStateOf(chartEntries) }
+
+    var wasLoading by remember { mutableStateOf(false) }
+
+    LaunchedEffect(isLoadingMonth, chartEntries, selectedMonth) {
+        // only commit the new data when loading just finished (true -> false)
+        if (wasLoading && !isLoadingMonth) {
+            stableMonth = selectedMonth
+            stableEntries = chartEntries
+        }
+        wasLoading = isLoadingMonth
+    }
+
+
+
+
+    LaunchedEffect(selectedMonth) {
+        predVm.setPredictionBaseMonth(selectedMonth) // optional, depends on your logic
+
+        val start = selectedMonth
+            .minusMonths(6)
+            .atDay(1)
+            .atStartOfDay(ZoneId.systemDefault())
+            .toInstant()
+            .toEpochMilli()
+
+        val end = selectedMonth
+            .plusMonths(3)
+            .atEndOfMonth()
+            .atStartOfDay(ZoneId.systemDefault())
+            .toInstant()
+            .toEpochMilli()
+
+        predVm.loadBloodflowForRange(start, end)
+    }
+
+
+
+
+
+
 
     // ---------------- PREDICTION GRAPH STATE ----------------
     val currentMonth = remember { YearMonth.now() }
     val lastMonth = remember { YearMonth.now().minusMonths(1) }
+
+
 
     LaunchedEffect(Unit) {
         predVm.loadEntriesForMonth(lastMonth)
@@ -463,7 +512,7 @@ fun StatisticsPage(navController: NavController) {
                                 }
                             }
 
-                            val entryVm: EntryViewModel = viewModel()
+
 
                             Spacer(Modifier.height(18.dp))
                             HorizontalDivider(color = Brown, thickness = 2.dp)
@@ -475,7 +524,7 @@ fun StatisticsPage(navController: NavController) {
                                 color = Brown
                             )
 
-                            Button(onClick = { entryVm.deleteAllData() }) {
+                            Button(onClick = { realVm.deleteAllData() }) {
                                 Text("Delete all data", color = Softsoftyellow)
                             }
 
@@ -700,11 +749,20 @@ fun StatisticsPage(navController: NavController) {
 
                         Spacer(modifier = Modifier.height(20.dp))
 
+
+                        Text(
+                            text = "Ovulation days: ${ovulationDays.size} -> " +
+                                    ovulationDays.filter { YearMonth.from(it) == selectedMonth }
+                                        .joinToString { it.dayOfMonth.toString() },
+                            color = Brown
+                        )
+
+
                         DailyMetricsChart(
-                            entries = chartEntries,
-                            month = selectedMonth,
+                            entries = stableEntries,
+                            month = stableMonth,
                             ovulationDays = ovulationDays
-                                .filter { YearMonth.from(it) == selectedMonth }
+                                .filter { YearMonth.from(it) == stableMonth }
                                 .map { it.dayOfMonth }
                                 .toSet(),
                             showBloodflow = showBloodflow,
@@ -712,6 +770,7 @@ fun StatisticsPage(navController: NavController) {
                             showMood = showMood,
                             showEnergy = showEnergy
                         )
+
 
                         Spacer(modifier = Modifier.height(24.dp))
 
@@ -1259,40 +1318,42 @@ private fun MultiAxisLineChart(
             bottom - (v.coerceIn(0f, rightMax) / rightMax) * (bottom - top)
 
         // =====================
-        // OVULATION BACKGROUND
+        // OVULATION //TODO one solid colour
         // =====================
-        for (i in 0 until count) {
-            if (ovulationDays.contains(i + 1)) {
+        // =====================
+// FERTILE WINDOW (ovulation day + 3 days before) — solid color
+// =====================
 
-                val xPos = x(i)
-                val barWidth = (right - left) / count * 0.8f
-
-                // main ovulation day
-                drawRect(
-                    color = MoodBrightBlue.copy(alpha = 0.35f),
-                    topLeft = Offset(xPos - barWidth / 2f, top),
-                    size = Size(barWidth, bottom - top)
-                )
-
-                // day -1
-                if (ovulationDays.contains(i)) {
-                    drawRect(
-                        color = MoodBrightBlue.copy(alpha = 0.18f),
-                        topLeft = Offset(xPos - barWidth / 2f - barWidth, top),
-                        size = Size(barWidth, bottom - top)
-                    )
-                }
-
-                // day -2
-                if (ovulationDays.contains(i - 1)) {
-                    drawRect(
-                        color = MoodBrightBlue.copy(alpha = 0.1f),
-                        topLeft = Offset(xPos - barWidth / 2f - barWidth * 2, top),
-                        size = Size(barWidth, bottom - top)
-                    )
+// ovulationDays is day-of-month numbers like {14}
+// fertileDays becomes {11,12,13,14}
+        val fertileDays: Set<Int> = buildSet {
+            for (ovuDay in ovulationDays) {
+                for (offset in 0 downTo -3) { // 0, -1, -2, -3
+                    val d = ovuDay + offset
+                    if (d in 1..count) add(d)   // clamp to valid days
                 }
             }
         }
+
+        for (i in 0 until count) {
+            val dayOfMonth = i + 1
+            if (fertileDays.contains(dayOfMonth)) {
+                val xPos = x(i)
+                val barWidth = (right - left) / (count - 1) // full day width
+
+
+                drawRect(
+                    color = MoodBrightBlue.copy(alpha = 0.25f), // ONE solid colour
+                    topLeft = Offset(xPos - barWidth / 2f, top),
+                    size = Size(barWidth, bottom - top)
+                )
+            }
+        }
+
+
+
+
+
 
 
         // axes

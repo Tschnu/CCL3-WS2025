@@ -16,8 +16,14 @@ import java.time.LocalDate
 import java.time.YearMonth
 import android.util.Log
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelAndJoin
+
 
 import java.time.ZoneId
+
+
+
 
 class EntryViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -26,6 +32,14 @@ class EntryViewModel(application: Application) : AndroidViewModel(application) {
     // ----------------------------
     // Chart entries (REAL)
     // ----------------------------
+    // prevents flicker when changing months
+    private var loadMonthJob: Job? = null
+
+    private val _isLoadingMonth = MutableStateFlow(false)
+    val isLoadingMonth: StateFlow<Boolean> = _isLoadingMonth
+
+
+
     private val _entriesForChart = MutableStateFlow<List<DailyEntryEntity>>(emptyList())
     val entriesForChart: StateFlow<List<DailyEntryEntity>> = _entriesForChart
 
@@ -274,6 +288,9 @@ class EntryViewModel(application: Application) : AndroidViewModel(application) {
     // ----------------------------
     // Monthly chart loading (REAL)
     // ----------------------------
+    // ----------------------------
+// Monthly chart loading (REAL)
+// ----------------------------
     fun loadEntriesForMonth(month: YearMonth) {
         val start = month
             .atDay(1)
@@ -288,9 +305,16 @@ class EntryViewModel(application: Application) : AndroidViewModel(application) {
             .toInstant()
             .toEpochMilli()
 
-        viewModelScope.launch {
-            dao.getEntriesBetween(start, end).collect {
-                _entriesForChart.value = it
+        loadMonthJob?.cancel() // cancel previous month request
+
+        loadMonthJob = viewModelScope.launch {
+            _isLoadingMonth.value = true
+            try {
+                // one-shot read -> prevents flicker
+                val list = dao.getEntriesBetween(start, end).first()
+                _entriesForChart.value = list
+            } finally {
+                _isLoadingMonth.value = false
             }
         }
     }
@@ -300,12 +324,14 @@ class EntryViewModel(application: Application) : AndroidViewModel(application) {
 
         viewModelScope.launch {
             dao.getEntryByDate(currentDate).collect { entry ->
-                entry?.let {
-                    dao.deleteEntry(it)
-                }
+                entry?.let { dao.deleteEntry(it) }
             }
         }
     }
+
+
+
+
 
 
     fun deleteAllData() {
