@@ -326,8 +326,13 @@ class EntryViewModel(application: Application) : AndroidViewModel(application) {
                 val existing = dao.getEntryByDate(dateMillis).first()
 
                 if (existing != null && existing.bloodflowCategory > 0) {
-                    dao.deleteEntry(existing)
-                } else {
+                    dao.insertEntry(
+                        existing.copy(
+                            bloodflowCategory = 0
+                        )
+                    )
+                }
+                else {
                     dao.insertEntry(
                         DailyEntryEntity(
                             date = dateMillis,
