@@ -119,7 +119,7 @@ fun KalenderPage(navController: NavController) {
             )
 
 
-            if (selectionMode && selectedDates.isNotEmpty()) {
+            if (selectionMode) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -133,7 +133,7 @@ fun KalenderPage(navController: NavController) {
                             selectionMode = false
                         },
                         modifier = Modifier.weight(1f),
-                        colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                        colors = buttonColors(
                             containerColor = Brown
                         )
                     ) {
@@ -233,7 +233,8 @@ fun CalendarHeader(
                 ),
                 contentDescription = "Select period days",
                 modifier = Modifier
-                    .size(44.dp)
+                    .size(50.dp)
+                    .padding(top = 12.dp)
                     .clickable(
                         indication = null,
                         interactionSource = remember { MutableInteractionSource() }
