@@ -5,6 +5,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -109,8 +110,13 @@ fun KalenderPage(navController: NavController) {
         Column(modifier = Modifier.fillMaxSize()) {
 
             CalendarHeader(
-                selectionMode = selectionMode
+                selectionMode = selectionMode,
+                onToggleSelection = {
+                    selectionMode = !selectionMode
+                    if (!selectionMode) selectedDates.clear()
+                }
             )
+
 
             if (selectionMode && selectedDates.isNotEmpty()) {
                 Row(
@@ -187,35 +193,15 @@ fun KalenderPage(navController: NavController) {
             }
         }
 
-        Image(
-            painter = painterResource(R.drawable.flower_red_single),
-            contentDescription = "Select period days",
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(16.dp)
-                .size(55.dp)
-                .background(
-                    color = Brown,
-                    shape = RoundedCornerShape(30)
-                )
-                .clickable {
-                    selectionMode = !selectionMode
-                    if (!selectionMode) selectedDates.clear()
-                }
-                .border(
-                    width = if (selectionMode) 2.dp else 1.dp,
-                    color = if (selectionMode) RedLightLight else Color.Transparent,
-                    shape = RoundedCornerShape(30)
-                )
-                .padding(3.dp)
-        )
+
     }
 }
 
 
 @Composable
 fun CalendarHeader(
-    selectionMode: Boolean
+    selectionMode: Boolean,
+    onToggleSelection: () -> Unit
 ) {
 
     Column(
@@ -237,7 +223,23 @@ fun CalendarHeader(
                 contentDescription = "Quiet Bloom Logo",
                 modifier = Modifier.height(80.dp)
             )
-
+            Image(
+                painter = painterResource(
+                    if (selectionMode)
+                        R.drawable.multi_tool_filled
+                    else
+                        R.drawable.multi_tool
+                ),
+                contentDescription = "Select period days",
+                modifier = Modifier
+                    .size(44.dp)
+                    .clickable(
+                        indication = null,
+                        interactionSource = remember { MutableInteractionSource() }
+                    ) {
+                        onToggleSelection()
+                    }
+            )
 
         }
 
