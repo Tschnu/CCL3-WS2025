@@ -234,13 +234,14 @@ fun CalendarHeader(
                 contentDescription = "Select period days",
                 modifier = Modifier
                     .size(50.dp)
-                    .padding(top = 12.dp)
+                    .offset(x = (-8).dp, y = 16.dp)   // ⬅️ left, ⬇️ down (tweak these)
                     .clickable(
                         indication = null,
                         interactionSource = remember { MutableInteractionSource() }
                     ) {
                         onToggleSelection()
                     }
+
             )
 
         }
