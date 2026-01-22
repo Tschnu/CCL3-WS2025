@@ -236,7 +236,10 @@ fun StatisticsPage(navController: NavController) {
                 Text(
                     "These are estimated values based on your previous logged data.\n\n" +
                             "If you don’t have enough entries yet, predictions can’t be generated.\n" +
-                            "Log more days to unlock prediction charts."
+                            "Log more days to unlock prediction charts.\n\n"+
+                            "• Blood = flow intensity\n" +
+                            "• Pain / Mood / Energy = your daily categories\n\n" +
+                            "Use the filter chips to hide/show lines."
                 )
             }
         )
@@ -254,7 +257,7 @@ fun StatisticsPage(navController: NavController) {
             title = { Text("Mood Distribution") },
             text = {
                 Text(
-                    "This donut shows how often each mood was logged in the selected month.\n\n" +
+                    "This donut shows how often each mood was logged in this current month.\n\n" +
                             "More logged days = more accurate distribution."
                 )
             }
@@ -928,8 +931,9 @@ private fun DailyMetricsChart(
     val energy: List<Float?> = days.map { day -> byDate[day]?.energyCategory?.toFloat() }
     val flow: List<Float?> = days.map { day -> byDate[day]?.bloodflowCategory?.toFloat() }
     val mood: List<Float?> = days.map { day ->
-        val raw = byDate[day]?.moodCategory ?: return@map null
-        (4 - raw).toFloat()
+        byDate[day]?.moodCategory
+            ?.takeIf { it in 0..4 }
+            ?.let { (4f - it.toFloat()) }
     }
 
     val hasAnyData =
@@ -1026,7 +1030,7 @@ private fun PredictedMonthChart(
     val pain: List<Float?> = prediction.painByDay.map { it }
     val flow: List<Float?> = prediction.bloodflowByDay.map { it }
 
-    val mood: List<Float?> = prediction.moodByDay.map { if (it > 0f) it else 2f }
+    val mood: List<Float?> = prediction.moodByDay.map { if (it > 0f) (4f - it) else 2f }
     val energy: List<Float?> = prediction.energyByDay.map { if (it > 0f) it else 2f }
 
     val hasAnyData =
@@ -1216,6 +1220,10 @@ private fun MultiAxisLineChart(
         fun yLeft(v: Float) =
             bottom - (v.coerceIn(0f, leftMax) / leftMax) * (bottom - top)
 
+        fun yLeftFlipped(v: Float) =
+            top + (v.coerceIn(0f, leftMax) / leftMax) * (bottom - top)
+
+
         fun yRight(v: Float) =
             bottom - (v.coerceIn(0f, rightMax) / rightMax) * (bottom - top)
 
@@ -1309,6 +1317,43 @@ private fun MultiAxisLineChart(
             }
         }
 
+        fun drawSeriesCustomY(
+            values: List<Float?>,
+            color: Color,
+            marker: MarkerShape,
+            yMapper: (Float) -> Float
+        ) {
+            val path = Path()
+            var started = false
+
+            for (i in 0 until count) {
+                val v = values[i] ?: continue
+                val px = x(i)
+                val py = yMapper(v)
+
+                if (!started) {
+                    path.moveTo(px, py)
+                    started = true
+                } else {
+                    path.lineTo(px, py)
+                }
+            }
+
+            drawPath(path, color, style = Stroke(5f, cap = StrokeCap.Round))
+
+            val markerSize = 12f
+            for (i in 0 until count) {
+                val v = values[i] ?: continue
+                drawMarker(
+                    center = Offset(x(i), yMapper(v)),
+                    size = markerSize,
+                    color = color,
+                    shape = marker
+                )
+            }
+        }
+
+
         // LEFT axis label
         drawContext.canvas.nativeCanvas.drawText(
             "Pain / Mood / Energy",
@@ -1334,7 +1379,14 @@ private fun MultiAxisLineChart(
         // Shapes per category
         if (showBloodflow) drawSeries(valuesFlow, RedDark, true, MarkerShape.CIRCLE)
         if (showPain) drawSeries(valuesPain, YellowDark, false, MarkerShape.SQUARE)
-        if (showMood) drawSeries(valuesMood, BlueDark, false, MarkerShape.TRIANGLE)
+        if (showMood) {
+            drawSeriesCustomY(
+                values = valuesMood,
+                color = BlueDark,
+                marker = MarkerShape.TRIANGLE,
+                yMapper = ::yLeftFlipped
+            )
+        }
         if (showEnergy) drawSeries(valuesEnergy, GreenDark, false, MarkerShape.PENTAGON)
     }
 }
