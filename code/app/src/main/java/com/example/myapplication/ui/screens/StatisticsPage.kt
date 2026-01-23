@@ -750,12 +750,12 @@ fun StatisticsPage(navController: NavController) {
                         Spacer(modifier = Modifier.height(20.dp))
 
 
-                        Text(
-                            text = "Ovulation days: ${ovulationDays.size} -> " +
-                                    ovulationDays.filter { YearMonth.from(it) == selectedMonth }
-                                        .joinToString { it.dayOfMonth.toString() },
-                            color = Brown
-                        )
+//                        Text(
+//                            text = "Ovulation days: ${ovulationDays.size} -> " +
+//                                    ovulationDays.filter { YearMonth.from(it) == selectedMonth }
+//                                        .joinToString { it.dayOfMonth.toString() },
+//                            color = Brown
+//                        )
 
 
                         DailyMetricsChart(
