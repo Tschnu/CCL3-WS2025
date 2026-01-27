@@ -48,6 +48,7 @@ import com.example.myapplication.ui.theme.MoodDarkBlue
 import com.example.myapplication.ui.theme.MoodDarkGreen
 import com.example.myapplication.ui.theme.MoodYellow
 import com.example.myapplication.ui.theme.RedDark
+import com.example.myapplication.ui.theme.RedLight
 import com.example.myapplication.ui.theme.Softsoftyellow
 import com.example.myapplication.ui.theme.YellowDark
 import com.example.myapplication.ui.theme.YellowStrong
@@ -155,6 +156,7 @@ fun StatisticsPage(navController: NavController) {
     val chartEntries = realVm.entriesForChart.collectAsState().value
     val isLoadingMonth = realVm.isLoadingMonth.collectAsState().value
 
+    var showDeleteAllDialog by remember { mutableStateOf(false) }
 
     var stableMonth by remember { mutableStateOf(selectedMonth) }
     var stableEntries by remember { mutableStateOf(chartEntries) }
@@ -349,6 +351,7 @@ fun StatisticsPage(navController: NavController) {
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
+                                .verticalScroll(rememberScrollState())
                                 .padding(16.dp)
                         ) {
 
@@ -524,9 +527,13 @@ fun StatisticsPage(navController: NavController) {
                                 color = Brown
                             )
 
-                            Button(onClick = { realVm.deleteAllData() }) {
+                            Button(
+                                onClick = { showDeleteAllDialog = true },
+                                colors = ButtonDefaults.buttonColors(containerColor = RedLight.copy(alpha = 0.5f))
+                            ) {
                                 Text("Delete all data", color = Softsoftyellow)
                             }
+
 
                             Spacer(Modifier.height(18.dp))
                             HorizontalDivider(color = Brown, thickness = 2.dp)
@@ -540,6 +547,52 @@ fun StatisticsPage(navController: NavController) {
                         }
                     }
                 }
+                if (showDeleteAllDialog) {
+                    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+                        AlertDialog(
+                            onDismissRequest = { showDeleteAllDialog = false },
+                            containerColor = Softsoftyellow,
+                            shape = RoundedCornerShape(20.dp),
+
+                            title = {
+                                Text(
+                                    text = "Delete all data?",
+                                    color = Brown,
+                                    fontWeight = FontWeight.Bold,
+                                    textAlign = TextAlign.Start,
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            },
+
+                            text = {
+                                Text(
+                                    text = "This will permanently delete all your entries.\nThis action can’t be undone.",
+                                    color = Brown,
+                                    textAlign = TextAlign.Start,
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            },
+
+                            confirmButton = {
+                                TextButton(
+                                    onClick = {
+                                        realVm.deleteAllData()
+                                        showDeleteAllDialog = false
+                                    }
+                                ) {
+                                    Text("Delete", color = RedLight)
+                                }
+                            },
+
+                            dismissButton = {
+                                TextButton(onClick = { showDeleteAllDialog = false }) {
+                                    Text("Cancel", color = Brown)
+                                }
+                            }
+                        )
+                    }
+                }
+
             }
         ) {
             // ✅ Page content back to normal LTR
