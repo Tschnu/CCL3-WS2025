@@ -24,8 +24,13 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ButtonDefaults.buttonColors
+import androidx.compose.material3.Icon
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -100,6 +105,8 @@ fun KalenderPage(navController: NavController) {
     val scope = rememberCoroutineScope()
     val currentMonthIndex = remember(monthsBefore) { monthsBefore }
 
+    var showCalendarInfo by remember { mutableStateOf(false) }
+
     val isCurrentMonthVisible by remember {
         derivedStateOf {
             listState.layoutInfo.visibleItemsInfo.any { it.index == currentMonthIndex }
@@ -115,9 +122,35 @@ fun KalenderPage(navController: NavController) {
                 onToggleSelection = {
                     selectionMode = !selectionMode
                     if (!selectionMode) selectedDates.clear()
-                }
+                },
+                onInfoClick = { showCalendarInfo = true }
             )
 
+            if (showCalendarInfo) {
+                AlertDialog(
+                    onDismissRequest = { showCalendarInfo = false },
+                    confirmButton = {
+                        Button(
+                            onClick = { showCalendarInfo = false },
+                            colors = ButtonDefaults.buttonColors(containerColor = Brown)
+                        ) {
+                            Text("OK", color = Softsoftyellow)
+                        }
+                    },
+                    title = { Text("Calendar") },
+                    text = {
+                        Text(
+                            "Add/edit:\n"+
+                            "Tap a day to add or edit an entry\n\n" +
+                                    "Multiselect tool"+
+                                    "Click the the icon with the + inside to mark or unmark period days quickly\n\n" +
+                                    "Red splashes = period days\n" +
+                                    "Light splashes = predicted days\n" +
+                                    "Blue markers = ovulation & fertile window"
+                        )
+                    }
+                )
+            }
 
             if (selectionMode) {
                 Row(
@@ -202,7 +235,8 @@ fun KalenderPage(navController: NavController) {
 @Composable
 fun CalendarHeader(
     selectionMode: Boolean,
-    onToggleSelection: () -> Unit
+    onToggleSelection: () -> Unit,
+    onInfoClick: () -> Unit
 ) {
 
     Column(
@@ -224,6 +258,23 @@ fun CalendarHeader(
                 contentDescription = "Quiet Bloom Logo",
                 modifier = Modifier.height(80.dp)
             )
+
+            Icon(
+                imageVector = Icons.Default.Info,
+                contentDescription = "Calendar info",
+                tint = Brown,
+                modifier = Modifier
+                    .size(26.dp)
+                    .clickable(
+                        indication = null,
+                        interactionSource = remember { MutableInteractionSource() }
+                    ) {
+                        onInfoClick()
+                    }
+            )
+
+            Spacer(Modifier.width(12.dp))
+
             Image(
                 painter = painterResource(
                     if (selectionMode)
