@@ -11,12 +11,14 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.myapplication.R
 import com.example.myapplication.ui.theme.Brown
@@ -107,7 +109,9 @@ fun AddEntryPage(
 
         HorizontalDivider(color = Brown, thickness = 2.dp)
 
-        SectionTitle("Blood Flow")
+        SectionTitle(
+            text = "Blood Flow",
+            infoText = "Select how strong your bleeding was today.")
         HorizontalDivider(color = Brown, thickness = 2.dp)
 
         Spacer(Modifier.height(16.dp))
@@ -129,7 +133,11 @@ fun AddEntryPage(
 
         HorizontalDivider(color = Brown, thickness = 2.dp)
 
-        SectionTitle("Pain")
+        SectionTitle(
+            text = "Pain",
+            infoText = "How strong was your pain today?"
+        )
+
         HorizontalDivider(color = Brown, thickness = 2.dp)
 
         Spacer(Modifier.height(16.dp))
@@ -149,7 +157,11 @@ fun AddEntryPage(
 
         HorizontalDivider(color = Brown, thickness = 2.dp)
 
-        SectionTitle("Energy Level")
+        SectionTitle(
+            text = "Energy Level",
+            infoText = "How energetic did you feel today?"
+        )
+
         HorizontalDivider(color = Brown, thickness = 2.dp)
 
         Spacer(Modifier.height(16.dp))
@@ -169,7 +181,11 @@ fun AddEntryPage(
 
         HorizontalDivider(color = Brown, thickness = 2.dp)
 
-        SectionTitle("Mood")
+        SectionTitle(
+            text = "Mood",
+            infoText = "How was your mood today?"
+        )
+
         HorizontalDivider(color = Brown, thickness = 2.dp)
 
         Spacer(Modifier.height(16.dp))
@@ -191,7 +207,11 @@ fun AddEntryPage(
 
         HorizontalDivider(color = Brown, thickness = 2.dp)
 
-        SectionTitle("Journal")
+        SectionTitle(
+            text = "Journal",
+            infoText = "Write anything you want about this day."
+        )
+
         HorizontalDivider(color = Brown, thickness = 2.dp)
 
         Spacer(Modifier.height(16.dp))
@@ -345,12 +365,54 @@ fun MoodImageRow(
 
 
 @Composable
-fun SectionTitle(text: String) {
-    Text(
-        text = text,
-        style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(vertical = 0.dp, horizontal = 4.dp)
-    )
+fun SectionTitle(
+    text: String,
+    infoText: String? = null
+) {
+    var showInfo by remember { mutableStateOf(false) }
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 0.dp, horizontal = 6.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.titleMedium.copy(
+                fontWeight = FontWeight.Bold),
+            modifier = Modifier.padding(vertical = 0.dp, horizontal = 4.dp)
+        )
+
+        Spacer(modifier = Modifier.weight(1f))
+        if (infoText != null) {
+            IconButton(
+                onClick = { showInfo = true },
+                modifier = Modifier.size(24.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Info,
+                    contentDescription = "Info",
+                    tint = Brown
+                )
+            }
+        }
+    }
+
+    if (showInfo && infoText != null) {
+        AlertDialog(
+            onDismissRequest = { showInfo = false },
+            confirmButton = {
+                Button(
+                    onClick = { showInfo = false },
+                    colors = ButtonDefaults.buttonColors(containerColor = Brown)
+                ) {
+                    Text("OK", color = Softsoftyellow)
+                }
+            },
+            title = { Text(text) },
+            text = { Text(infoText) }
+        )
+    }
 }
 
 @Composable
