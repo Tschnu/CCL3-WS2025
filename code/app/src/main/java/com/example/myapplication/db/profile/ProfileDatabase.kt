@@ -9,7 +9,7 @@ import com.example.myapplication.db.dailyEntry.DailyEntryEntity
 
 @Database(
     entities = [ProfileEntity::class], // this is your "profile" entity
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 abstract class ProfileDatabase : RoomDatabase() {
@@ -27,7 +27,9 @@ abstract class ProfileDatabase : RoomDatabase() {
                     context.applicationContext,
                     ProfileDatabase::class.java,
                     "profile_database"
-                ).build()
+                )// ADD THIS LINE
+                    .fallbackToDestructiveMigration()
+                    .build()
                 INSTANCE = instance
                 instance
             }

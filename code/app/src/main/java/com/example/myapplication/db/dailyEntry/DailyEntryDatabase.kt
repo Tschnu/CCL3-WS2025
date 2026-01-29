@@ -9,7 +9,7 @@ import com.example.myapplication.db.converters.DailyLogConverter
 
 @Database(
     entities = [DailyEntryEntity::class],
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 @TypeConverters(DailyLogConverter::class)
