@@ -163,6 +163,33 @@ header a:hover {
 
 
 
+.prototype-databse img{
+  height: 350px;
+}
+
+
+.prototype-databse{
+    display: flex;
+  align-items: flex-start;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+
+.app-screens{
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+  justify-content: space-evenly;
+}
+
+.app-screens img{
+  width: 150px;
+}
+
+
+
+
 .heuristic-table {
   width: 100%;
   border-collapse: collapse;
