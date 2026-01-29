@@ -1,25 +1,28 @@
-html, body {
+html,
+body {
   height: 100%;
   margin: 0;
-   font-family: Quicksand;
- color: #3d2b1f;
+  font-family: Quicksand;
+  color: #3d2b1f;
 }
 
 body {
   display: flex;
   flex-direction: column;
-    padding-top: 70px; /* adjust until content starts below header */
+  padding-top: 70px;
+  /* adjust until content starts below header */
 
 }
 
 
 
-p{
+p {
   font-size: 16px;
 }
 
-.highlight-line{
-  border-left: 4px solid #3d2b1f;   /* your yellow accent */
+.highlight-line {
+  border-left: 4px solid #3d2b1f;
+  /* your yellow accent */
   padding-left: 14px;
   margin: 20px 0;
   font-size: 18px;
@@ -27,7 +30,7 @@ p{
 }
 
 
-a{
+a {
   text-decoration: none;
   color: #3d2b1f;
 }
@@ -52,7 +55,7 @@ header {
 
   background-color: white;
   padding: 1rem 2rem;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
 
@@ -69,36 +72,54 @@ header a:hover {
 }
 
 
-
-
-
-.main-content{
- margin: 10% 20% 10% 20%;
-
- 
+.download-btn {
+  background-color: #fbf3d3;
+  border-radius: 8px;
+  outline: 2px solid #3d2b1f;
+  padding: 10px 20px;
+  margin: 20px;
+  display: inline-block;
+  text-align: center;
 }
 
-#top-logo{
-    width: 500px;
-    display: flex;
-    justify-content: center;
+.material {
+  text-decoration: underline !important;
+}
+
+
+
+
+
+.main-content {
+  margin: 10% 20% 10% 20%;
+
+
+}
+
+#top-logo {
+  width: 500px;
+  display: flex;
+  justify-content: center;
 }
 
 .features {
   display: grid;
-  grid-template-columns: repeat(2, 1fr); /* 2 columns */
-  gap: 16px; /* space between boxes */
+  grid-template-columns: repeat(2, 1fr);
+  /* 2 columns */
+  gap: 16px;
+  /* space between boxes */
   margin-top: 10px;
 }
 
-.feature-card{
+.feature-card {
   padding: 18px;
   border: 2px solid rgba(0, 0, 0, 0.15);
   background-color: #fbf3d3;
   border-radius: 12px;
   transition: transform 200ms ease, box-shadow 200ms ease;
   cursor: default;
-  text-align: center;        /* center everything */
+  text-align: center;
+  /* center everything */
 }
 
 .features {
@@ -108,7 +129,7 @@ header a:hover {
   margin-top: 10px;
 }
 
-.feature-card{
+.feature-card {
   padding: 18px;
   border: 2px solid rgba(0, 0, 0, 0.15);
   background-color: #fbf3d3;
@@ -119,16 +140,18 @@ header a:hover {
 }
 
 /* Title centered, no margin */
-.feature-card h4{
+.feature-card h4 {
   margin: 0;
   font-size: 18px;
   line-height: 1.2;
 }
 
 /* Hidden text: no margin when not hovered */
-.feature-text{
-  margin: 0;                 /* THIS removes the weird space */
-  padding: 0;                /* just in case */
+.feature-text {
+  margin: 0;
+  /* THIS removes the weird space */
+  padding: 0;
+  /* just in case */
   font-size: 15px;
   line-height: 1.4;
   opacity: 0;
@@ -137,53 +160,55 @@ header a:hover {
   transition: opacity 200ms ease, max-height 250ms ease, margin-top 200ms ease;
 }
 
-.feature-card:hover{
+.feature-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 10px 18px rgba(0,0,0,0.12);
+  box-shadow: 0 10px 18px rgba(0, 0, 0, 0.12);
 }
 
-.feature-card:hover .feature-text{
+.feature-card:hover .feature-text {
   opacity: 1;
   max-height: 200px;
-  margin-top: 10px;          /* spacing ONLY when expanded */
+  margin-top: 10px;
+  /* spacing ONLY when expanded */
 }
 
 
 
 /* hover behavior */
-.feature-card:hover{
+.feature-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 10px 18px rgba(0,0,0,0.12);
+  box-shadow: 0 10px 18px rgba(0, 0, 0, 0.12);
 }
 
-.feature-card:hover .feature-text{
+.feature-card:hover .feature-text {
   opacity: 1;
-  max-height: 200px;   /* large enough to fit text */
+  max-height: 200px;
+  /* large enough to fit text */
 }
 
 
 
-.prototype-databse img{
+.prototype-databse img {
   height: 350px;
 }
 
 
-.prototype-databse{
-    display: flex;
+.prototype-databse {
+  display: flex;
   align-items: flex-start;
   flex-direction: row;
   justify-content: space-between;
 }
 
 
-.app-screens{
+.app-screens {
   display: flex;
   align-items: center;
   flex-direction: row;
   justify-content: space-evenly;
 }
 
-.app-screens img{
+.app-screens img {
   width: 150px;
 }
 
@@ -199,14 +224,16 @@ header a:hover {
 
 .heuristic-table th,
 .heuristic-table td {
-  text-align: left;               /* left-aligned text */
+  text-align: left;
+  /* left-aligned text */
   padding: 12px;
   border-bottom: 1px solid rgba(0, 0, 0, 0.15);
   vertical-align: top;
 }
 
 .heuristic-table thead th {
-  font-weight: 700;               /* bold header row */
+  font-weight: 700;
+  /* bold header row */
   border-bottom: 2px solid rgba(0, 0, 0, 0.3);
 }
 
@@ -221,21 +248,23 @@ header a:hover {
 
 
 
-.seq-figure{
+.seq-figure {
   float: right;
-  width: 480px;        /* bigger graph */
-  margin: 0 0 20px 40px;  /* space between text and image */
+  width: 480px;
+  /* bigger graph */
+  margin: 0 0 20px 40px;
+  /* space between text and image */
 }
 
 
-.seq-figure img{
+.seq-figure img {
   width: 100%;
   height: auto;
   display: block;
 }
 
 
-.seq-figure figcaption{
+.seq-figure figcaption {
   font-size: 0.9rem;
   opacity: 0.8;
   margin-top: 6px;
@@ -243,7 +272,7 @@ header a:hover {
 }
 
 /* ensures the container wraps correctly around floated figure */
-.results::after{
+.results::after {
   content: "";
   display: block;
   clear: both;
@@ -273,8 +302,10 @@ header a:hover {
 
 
 footer {
-  margin-top: auto;              /* pushes footer to bottom */
-  background-color: #FFD84D;     /* soft yellow */
+  margin-top: auto;
+  /* pushes footer to bottom */
+  background-color: #FFD84D;
+  /* soft yellow */
   padding: 16px;
   text-align: center;
   font-size: 0.9rem;
