@@ -5,8 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -37,7 +36,7 @@ fun JournalHeader(
         verticalAlignment = Alignment.CenterVertically
     ){
         Icon(
-            imageVector = Icons.Default.ArrowBack,
+            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
             contentDescription = "Back",
             modifier = Modifier
                 .size(28.dp)
@@ -100,9 +99,6 @@ fun JournalPage(
                             navController.navigate(
                                 Screen.AddEntry.createRoute(dateString)
                             )
-                        },
-                        onDelete = {
-                            viewModel.deleteEntry(entry)
                         }
                     )
                 }
@@ -115,8 +111,7 @@ fun JournalPage(
 @Composable
 fun JournalEntryCard(
     entry: DailyEntryEntity,
-    onEdit: () -> Unit,
-    onDelete: () -> Unit
+    onEdit: () -> Unit
 ) {
     val formattedDate = remember(entry.date) {
         Instant.ofEpochMilli(entry.date)
