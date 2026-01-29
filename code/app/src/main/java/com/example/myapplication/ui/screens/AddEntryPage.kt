@@ -9,7 +9,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.*
@@ -28,6 +27,7 @@ import com.example.myapplication.viewModel.EntryViewModel
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 
 
 @Composable
@@ -50,7 +50,7 @@ fun AddEntryHeader(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
-            imageVector = Icons.Default.ArrowBack,
+            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
             contentDescription = "Back",
             modifier = Modifier
                 .size(28.dp)
@@ -111,7 +111,7 @@ fun AddEntryPage(
 
         SectionTitle(
             text = "Blood Flow",
-            infoText = "Select how strong your bleeding was today.")
+            infoText = "Here you can select how strong your bleeding was this day.\nChoose between: no bleeding, light flow, medium flow and heavy flow.")
         HorizontalDivider(color = Brown, thickness = 2.dp)
 
         Spacer(Modifier.height(16.dp))
@@ -135,7 +135,7 @@ fun AddEntryPage(
 
         SectionTitle(
             text = "Pain",
-            infoText = "How strong was your pain today?"
+            infoText = "Here you can fill in how strong your cramps were."
         )
 
         HorizontalDivider(color = Brown, thickness = 2.dp)
@@ -159,7 +159,7 @@ fun AddEntryPage(
 
         SectionTitle(
             text = "Energy Level",
-            infoText = "How energetic did you feel today?"
+            infoText = "Enter here how your overall energy level was today."
         )
 
         HorizontalDivider(color = Brown, thickness = 2.dp)
@@ -209,7 +209,10 @@ fun AddEntryPage(
 
         SectionTitle(
             text = "Journal",
-            infoText = "Write anything you want about this day."
+            infoText = "Use this space to reflect.\n" +
+                    "Write about how you felt today, what you’re grateful for, or anything you want to remember."
+
+
         )
 
         HorizontalDivider(color = Brown, thickness = 2.dp)
@@ -399,20 +402,13 @@ fun SectionTitle(
     }
 
     if (showInfo && infoText != null) {
-        AlertDialog(
-            onDismissRequest = { showInfo = false },
-            confirmButton = {
-                Button(
-                    onClick = { showInfo = false },
-                    colors = ButtonDefaults.buttonColors(containerColor = Brown)
-                ) {
-                    Text("OK", color = Softsoftyellow)
-                }
-            },
-            title = { Text(text) },
-            text = { Text(infoText) }
+        StyledInfoDialog(
+            title = text,
+            message = infoText,
+            onDismiss = { showInfo = false }
         )
     }
+
 }
 
 @Composable
@@ -448,38 +444,43 @@ fun ValueImageRow(
     }
 }
 
+
+
 @Composable
-fun MoodBar(
-    moods: List<Int>,
-    selectedValue: Int,
-    onSelect: (Int) -> Unit
+fun StyledInfoDialog(
+    title: String,
+    message: String,
+    onDismiss: () -> Unit,
+    confirmText: String = "OK"
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(Color.White, RoundedCornerShape(12.dp))
-            .border(2.dp, Brown, RoundedCornerShape(12.dp))
-            .padding(vertical = 8.dp),
-        horizontalArrangement = Arrangement.SpaceEvenly,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        moods.forEachIndexed { index, res ->
-            Box(
-                modifier = Modifier
-                    .size(44.dp)
-                    .background(
-                        color = if (selectedValue !=-1 && index == selectedValue) Color(0xFFEFECE5) else Color.Transparent,
-                        shape = RoundedCornerShape(50)
-                    )
-                    .clickable { onSelect(index) },
-                contentAlignment = Alignment.Center
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = Softsoftyellow,
+        shape = RoundedCornerShape(20.dp),
+        title = {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium,
+                color = Brown
+            )
+        },
+        text = {
+            Text(
+                text = message,
+                style = MaterialTheme.typography.bodyMedium,
+                color = Brown
+            )
+        },
+        confirmButton = {
+            Button(
+                onClick = onDismiss,
+                colors = ButtonDefaults.buttonColors(containerColor = Brown)
             ) {
-                Image(
-                    painter = painterResource(res),
-                    contentDescription = null,
-                    modifier = Modifier.size(28.dp)
-                )
+                Text(confirmText, color = Softsoftyellow)
             }
         }
-    }
+    )
 }
+
+
+

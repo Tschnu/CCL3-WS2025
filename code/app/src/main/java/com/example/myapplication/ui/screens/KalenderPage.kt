@@ -11,7 +11,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Divider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -26,10 +25,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ButtonDefaults.buttonColors
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -38,13 +36,11 @@ import androidx.compose.runtime.mutableStateSetOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
-import androidx.core.graphics.alpha
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.myapplication.R
@@ -127,30 +123,21 @@ fun KalenderPage(navController: NavController) {
             )
 
             if (showCalendarInfo) {
-                AlertDialog(
-                    onDismissRequest = { showCalendarInfo = false },
-                    confirmButton = {
-                        Button(
-                            onClick = { showCalendarInfo = false },
-                            colors = ButtonDefaults.buttonColors(containerColor = Brown)
-                        ) {
-                            Text("OK", color = Softsoftyellow)
-                        }
-                    },
-                    title = { Text("Calendar") },
-                    text = {
-                        Text(
-                            "Add/edit:\n"+
-                            "Tap a day to add or edit an entry\n\n" +
-                                    "Multiselect tool"+
-                                    "Click the the icon with the + inside to mark or unmark period days quickly\n\n" +
-                                    "Red splashes = period days\n" +
-                                    "Light splashes = predicted days\n" +
-                                    "Blue markers = ovulation & fertile window"
-                        )
-                    }
+                StyledInfoDialog(
+                    title = "Calendar",
+                    message =
+                        "How to use your calendar:\n\n" +
+                                "• Tap on a day to add or edit an entry\n" +
+                                "• Use the + tool to quickly mark multiple period days\n\n" +
+                                "What the colors mean:\n" +
+                                "• Red splashes — period days\n" +
+                                "• Light splashes — predicted days\n" +
+                                "• Blue circles — ovulation & fertile window",
+                    onDismiss = { showCalendarInfo = false }
                 )
             }
+
+
 
             if (selectionMode) {
                 Row(
@@ -245,12 +232,12 @@ fun CalendarHeader(
             .padding(top = 8.dp, bottom = 4.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
+            verticalAlignment = Alignment.CenterVertically
         ) {
 
             Image(
@@ -259,46 +246,50 @@ fun CalendarHeader(
                 modifier = Modifier.height(80.dp)
             )
 
+            Spacer(modifier = Modifier.weight(1f))
+
+            Row(
+                modifier = Modifier.offset(y = 16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+
+
             Icon(
-                imageVector = Icons.Default.Info,
-                contentDescription = "Calendar info",
-                tint = Brown,
-                modifier = Modifier
-                    .size(26.dp)
-                    .clickable(
-                        indication = null,
-                        interactionSource = remember { MutableInteractionSource() }
-                    ) {
-                        onInfoClick()
-                    }
-            )
+                    imageVector = Icons.Default.Info,
+                    contentDescription = "Calendar info",
+                    tint = Brown,
+                    modifier = Modifier
+                        .size(24.dp)
+                        .clickable(
+                            indication = null,
+                            interactionSource = remember { MutableInteractionSource() }
+                        ) {
+                            onInfoClick()
+                        }
+                )
 
-            Spacer(Modifier.width(12.dp))
-
-            Image(
-                painter = painterResource(
-                    if (selectionMode)
-                        R.drawable.multi_tool_filled
-                    else
-                        R.drawable.multi_tool
-                ),
-                contentDescription = "Select period days",
-                modifier = Modifier
-                    .size(50.dp)
-                    .offset(x = (-8).dp, y = 16.dp)   // ⬅️ left, ⬇️ down (tweak these)
-                    .clickable(
-                        indication = null,
-                        interactionSource = remember { MutableInteractionSource() }
-                    ) {
-                        onToggleSelection()
-                    }
-
-            )
-
+                Image(
+                    painter = painterResource(
+                        if (selectionMode)
+                            R.drawable.multi_tool_filled
+                        else
+                            R.drawable.multi_tool
+                    ),
+                    contentDescription = "Select period days",
+                    modifier = Modifier
+                        .size(46.dp)
+                        .clickable(
+                            indication = null,
+                            interactionSource = remember { MutableInteractionSource() }
+                        ) {
+                            onToggleSelection()
+                        }
+                )
+            }
         }
 
-
-        Divider(
+        HorizontalDivider(
             color = Brown,
             thickness = 2.dp,
             modifier = Modifier
@@ -306,8 +297,7 @@ fun CalendarHeader(
                 .fillMaxWidth(0.9f)
         )
 
-
-        Divider(
+        HorizontalDivider(
             color = Brown,
             thickness = 2.dp,
             modifier = Modifier
@@ -316,6 +306,10 @@ fun CalendarHeader(
         )
     }
 }
+
+
+
+
 
 @Composable
 fun MonthHeader(month: YearMonth) {
@@ -330,7 +324,7 @@ fun MonthHeader(month: YearMonth) {
             .padding(vertical = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Divider(
+        HorizontalDivider(
             thickness = 2.dp,
             color = Brown,
             modifier = Modifier.fillMaxWidth(0.98f)
@@ -343,7 +337,7 @@ fun MonthHeader(month: YearMonth) {
             modifier = Modifier.padding(vertical = 2.dp)
         )
 
-        Divider(
+        HorizontalDivider(
             thickness = 2.dp,
             color = Brown,
             modifier = Modifier.fillMaxWidth(0.98f)
@@ -540,10 +534,9 @@ fun RowScope.DayCell(
     )
     {
 
-        // 🔵 OVULATION VISUALS (background layer)
         if (ovulationDays.isNotEmpty()) {
 
-            // großer Kreis: Ovulationstag
+
             if (isOvulation) {
                 Box(
                     modifier = Modifier
