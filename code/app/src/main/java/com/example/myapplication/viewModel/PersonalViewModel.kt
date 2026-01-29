@@ -18,17 +18,30 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
     private val _profile = MutableStateFlow(ProfileEntity())   // ✅ never null in UI
     val profile: StateFlow<ProfileEntity> = _profile
 
+    private val _isReady = MutableStateFlow(false)
+    val isReady: StateFlow<Boolean> = _isReady
+
     init {
         viewModelScope.launch {
             dao.getProfile().collect { p ->
                 if (p == null) {
-                    // ✅ create default row once
                     dao.insertProfile(ProfileEntity())
                     _profile.value = ProfileEntity()
                 } else {
                     _profile.value = p
                 }
+                _isReady.value = true
             }
+        }
+    }
+
+
+    fun finishOnboarding() {
+        val current = _profile.value
+        viewModelScope.launch {
+            dao.insertProfile(
+                current.copy(onboardingDone = true)
+            )
         }
     }
 

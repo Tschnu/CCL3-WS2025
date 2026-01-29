@@ -11,6 +11,11 @@ sealed class Screen(
     val label: String,
     @DrawableRes val icon: Int
 ) {
+    data object Onboarding : Screen(
+        route = "onboarding",
+        label = "Onboarding",
+        icon = 0
+    )
     data object StatisticsPage : Screen("statistics_page", "Statistics", R.drawable.magic_crystal_ball)
     data object Profile : Screen("profile", "Profile", R.drawable.crown)
     data object Home : Screen("home", "Home", R.drawable.spa_flower)

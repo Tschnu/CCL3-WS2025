@@ -10,5 +10,6 @@ data class ProfileEntity(
     val name: String = "there",
     val flowerPicture: Int = 0,      // 0..4 for your 5 preset flowers
     val cycleLength: Int = 28,       // for calendar calculations
-    val periodLength: Int = 5        // optional but useful
+    val periodLength: Int = 5,        // optional but useful
+    val onboardingDone: Boolean = false // EnterPage
 )

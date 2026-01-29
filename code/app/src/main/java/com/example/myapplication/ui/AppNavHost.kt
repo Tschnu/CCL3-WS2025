@@ -1,6 +1,8 @@
 package com.example.myapplication.ui
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -11,6 +13,7 @@ import com.example.myapplication.ui.navigation.Screen
 import com.example.myapplication.ui.screens.AddEntryPage
 import com.example.myapplication.ui.screens.JournalPage
 import com.example.myapplication.ui.screens.KalenderPage
+import com.example.myapplication.ui.screens.OnboardingScreen
 
 import com.example.myapplication.ui.screens.StatisticsPage
 import com.example.myapplication.viewModel.EntryViewModel
@@ -21,11 +24,27 @@ fun AppNavHost(
     navController: NavHostController,
     modifier: Modifier = Modifier
 ) {
+    val profileVm: ProfileViewModel = viewModel()
+    val profile by profileVm.profile.collectAsState()
+    val isReady by profileVm.isReady.collectAsState()
+
+    if (!isReady) {
+        return
+    }
+    val startDestination = if (profile.onboardingDone) {
+        Screen.Home.route
+    } else {
+        Screen.Onboarding.route
+    }
     NavHost(
         navController = navController,
-        startDestination = Screen.Home.route,
+        startDestination = startDestination,
         modifier = modifier
     ) {
+        composable(Screen.Onboarding.route) {
+            OnboardingScreen(navController = navController)
+        }
+
         composable(Screen.Home.route) { KalenderPage(navController) }
         composable(Screen.StatisticsPage.route) { StatisticsPage(navController) }
         composable(Screen.Profile.route) {
