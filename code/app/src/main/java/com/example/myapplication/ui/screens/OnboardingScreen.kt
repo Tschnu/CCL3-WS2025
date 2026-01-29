@@ -210,7 +210,7 @@ fun CalendarInfoStep() {
     TutorialStep(
         imageRes = R.drawable.info_info,
         title = "Info-buttons",
-        text = "Click on the buttons to learn more about the page or the ."
+        text = "Click on the info buttons to learn more about the pages, categories and diagrams."
     )
 }
 
