@@ -262,7 +262,7 @@ fun TutorialStep(
             contentDescription = title,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(400.dp)
+                .height(450.dp)
         )
 
         Spacer(Modifier.height(24.dp))
