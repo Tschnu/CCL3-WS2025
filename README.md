@@ -57,6 +57,3 @@ https://www.figma.com/design/KASL7Z4b6HmkOAHYcxQAYT/CCL3?node-id=0-1&t=5ORIEk2Q1
 The app was evaluated using usability testing with SUS, SEQ, and think-aloud protocols.  
 Detailed results and methodology are available on the project pages.
 
-## License
-For educational purposes only.
-
