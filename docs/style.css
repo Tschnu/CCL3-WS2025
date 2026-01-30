@@ -310,3 +310,123 @@ footer {
   text-align: center;
   font-size: 0.9rem;
 }
+
+
+/* ✅ RESPONSIVE ADD-ON (put at the very bottom of your CSS) */
+
+/* 1) Make sizing more predictable */
+
+
+/* 2) Prevent fixed header from covering content on different screen sizes */
+body {
+  /* you can tweak this if your header height changes */
+  padding-top: 90px;
+}
+
+/* 3) Make main content margins fluid */
+.main-content {
+  .main-content { margin: 10% 20% 10% 20%; }
+
+}
+
+/* 4) Logo: don't force 500px on small screens */
+#top-logo {
+  width: min(500px, 100%);
+  margin: 0 auto;
+}
+
+/* 5) Make app screens wrap on smaller screens */
+.app-screens {
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.app-screens img {
+  width: clamp(110px, 22vw, 150px);
+}
+
+/* 6) Prototype database layout: allow wrapping */
+.prototype-databse {
+  flex-wrap: wrap;
+  gap: 24px;
+}
+
+.prototype-databse img {
+  height: auto;
+  width: min(420px, 100%);
+}
+
+/* 7) Sequence figure: stop floating on small screens */
+.seq-figure {
+  width: min(480px, 100%);
+}
+
+/* 8) Table: horizontal scroll on mobile */
+.heuristic-table {
+  display: block;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  white-space: nowrap;
+}
+
+/* ------------------------------- */
+/* 📱 Tablet and below (<= 900px)   */
+/* ------------------------------- */
+@media (max-width: 900px) {
+  header {
+    gap: 1.2rem;
+    padding: 0.8rem 1rem;
+    flex-wrap: wrap; /* allows links to wrap instead of overflowing */
+  }
+
+  .features {
+    grid-template-columns: 1fr; /* 2 columns -> 1 column */
+  }
+
+  /* Float layouts become stacked */
+  .seq-figure {
+    float: none;
+    margin: 16px auto;
+  }
+
+  .highlight-line {
+    font-size: 16px;
+  }
+}
+
+/* ------------------------------- */
+/* 📱 Mobile (<= 600px)            */
+/* ------------------------------- */
+@media (max-width: 600px) {
+  body {
+    padding-top: 110px; /* header may wrap and become taller */
+  }
+
+  header a {
+    font-size: 14px;
+  }
+
+  p {
+    font-size: 15px;
+  }
+
+  .download-btn {
+    width: 100%;
+    margin: 12px 0;
+  }
+
+  .feature-card {
+    padding: 14px;
+  }
+
+  .feature-card h4 {
+    font-size: 16px;
+  }
+
+  /* Hover doesn't exist on many phones: show text by default */
+  .feature-text {
+    opacity: 1;
+    max-height: 500px;
+    margin-top: 10px;
+  }
+}
