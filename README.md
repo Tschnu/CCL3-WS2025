@@ -1,6 +1,6 @@
 # Quiet Bloom (Android Period & Wellbeing Tracker)
 
-## Pages with futher information and user study
+## Pages with further information and user study
 https://tschnu.github.io/CCL3-WS2025/
 
 ## Brief description
